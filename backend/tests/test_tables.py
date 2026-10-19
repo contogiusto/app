@@ -77,6 +77,8 @@ def test_qr_svg_per_admin(client, tavolo, auth_header):
     assert r.status_code == 200
     assert r.headers["content-type"].startswith("image/svg+xml")
     assert "<svg" in r.text
+    # Senza namespace il browser non disegna il file: lo mostra come testo.
+    assert 'xmlns="http://www.w3.org/2000/svg"' in r.text
 
 
 def test_qr_svg_negato_a_cameriere_e_anonimi(client, tavolo, auth_header):

@@ -1,3 +1,4 @@
+import io
 import secrets
 
 import segno
@@ -70,5 +71,8 @@ def rigenera_qr(table_id: int, db: DbSession, _admin: AdminUser) -> Response:
 @router.get("/{table_id}/qr.svg")
 def qr_svg(table_id: int, db: DbSession, _admin: AdminUser) -> Response:
     table = _tavolo_o_404(db, table_id)
-    svg = segno.make(qr_url(table), error="m").svg_inline(scale=8, border=2)
-    return Response(content=svg, media_type="image/svg+xml")
+    # `save(kind="svg")` produce un file SVG completo (con xmlns); `svg_inline` è pensato per
+    # essere incollato in una pagina HTML e, servito come immagine, il browser non lo disegna.
+    buffer = io.BytesIO()
+    segno.make(qr_url(table), error="m").save(buffer, kind="svg", scale=8, border=2)
+    return Response(content=buffer.getvalue(), media_type="image/svg+xml")
