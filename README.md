@@ -1,4 +1,4 @@
-# Perfe
+# Conto Giusto
 
 Webapp per la gestione di ordini e pagamenti nei ristoranti: il cliente accede dal QR del tavolo, il cameriere apre la sessione e inserisce gli ordini, il ristoratore gestisce menu e tavoli.
 

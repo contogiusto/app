@@ -4,5 +4,5 @@ import App from './App'
 
 it('mostra il titolo', () => {
   render(<App />)
-  expect(screen.getByRole('heading', { name: 'Perfe' })).toBeTruthy()
+  expect(screen.getByRole('heading', { name: 'Conto Giusto' })).toBeTruthy()
 })

@@ -407,7 +407,7 @@ wheels = [
 ]
 
 [[package]]
-name = "perfe"
+name = "contogiusto"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
