@@ -30,5 +30,9 @@ uv run alembic upgrade head
 - Tutte le route API vivono sotto `/api` (richiesto dal routing Vercel).
 - Niente WebSocket (serverless): il real-time è polling dal frontend. Vedi ADR 0001.
 - Segreti solo da variabili d'ambiente (`.env.example` elenca quelle richieste); mai nel codice.
+- Auth staff: JWT HS256 (24h) da `POST /api/auth/login`. Le route protette usano le dipendenze di `app/deps.py` (`CurrentUser`, `AdminUser`, `require_roles(...)`); lettura menu pubblica, scrittura solo ADMIN.
+- `JWT_SECRET` va impostato su Vercel (Production e Preview, almeno 32 caratteri casuali): in produzione col valore di default login e token rispondono con errore.
+- Utenti staff: nessuna password predefinita. Si creano con `cd backend && uv run python -m app.cli create-user <username> <ADMIN|WAITER>` (con `DATABASE_URL` del DB di destinazione).
+- App a ristorante singolo per ora: il menu appartiene al primo `Restaurant` (creato al primo piatto).
 - Il codice dei pagamenti è simulato finché non si decide l'integrazione reale (es. Stripe).
 - Commit in stile Conventional Commits (`feat:`, `fix:`, `chore:`…).
