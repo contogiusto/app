@@ -70,7 +70,7 @@ def _pagamenti(db: Session, session_id: int) -> list[Payment]:
     )
 
 
-def _importo_romana(db: Session, session: TableSession, precedenti: list[Payment]) -> Decimal:
+def importo_romana(db: Session, session: TableSession, precedenti: list[Payment]) -> Decimal:
     if len(precedenti) >= session.coperti:
         raise Conflict("Tutte le quote sono già state pagate")
     totale = totale_sessione(db, session.id)
@@ -119,7 +119,7 @@ def crea_pagamento(
 
     voci: list[tuple[OrderItem, int]] = []
     if session.payment_mode == PaymentMode.ROMANA:
-        importo = _importo_romana(db, session, _pagamenti(db, session_id))
+        importo = importo_romana(db, session, _pagamenti(db, session_id))
     else:
         voci = _voci_own(db, session, selezione or [])
         importo = sum((item.unit_price * qty for item, qty in voci), Decimal("0.00"))
@@ -151,6 +151,16 @@ def _tutto_coperto(db: Session, session: TableSession) -> bool:
     ordinate = db.scalars(select(OrderItem).where(OrderItem.session_id == session.id)).all()
     pagate = quantita_pagate(db, session.id)
     return bool(ordinate) and all(pagate.get(i.id, 0) >= i.quantity for i in ordinate)
+
+
+def prossima_quota(db: Session, session: TableSession) -> Decimal | None:
+    """Quanto pagherebbe ora la prossima persona alla romana (None se non applicabile)."""
+    if session.payment_mode != PaymentMode.ROMANA:
+        return None
+    try:
+        return importo_romana(db, session, _pagamenti(db, session.id))
+    except Conflict:
+        return None
 
 
 def conferma_contanti(db: Session, payment_id: int) -> Payment:

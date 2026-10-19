@@ -128,6 +128,7 @@ class PaymentListOut(BaseModel):
 class PublicOrderItemOut(BaseModel):
     id: int
     name: str
+    category: str
     quantity: int
     unit_price: Decimal
     line_total: Decimal
@@ -153,10 +154,13 @@ class PublicSessionOut(BaseModel):
     total: Decimal
     paid_total: Decimal
     remaining: Decimal
+    # Alla romana: quanto pagherebbe ora la prossima persona (calcolato dal server).
+    next_share: Decimal | None
     items: list[PublicOrderItemOut]
     payments: list[PublicPaymentOut]
 
 
 class PublicTableOut(BaseModel):
+    restaurant_name: str
     table_number: int
     session: PublicSessionOut | None

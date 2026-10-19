@@ -196,3 +196,42 @@ def test_pagamento_senza_sessione_aperta_409(client, tavolo):
 
 def test_nome_obbligatorio_422(client, tavolo, sessione):
     assert _paga(client, tavolo, {"method": "ONLINE", "customer_nickname": ""}).status_code == 422
+
+
+# --- dati per la schermata cliente ---------------------------------------------------------
+
+
+def test_la_vista_include_nome_ristorante_e_categoria(client, db, tavolo, sessione, piatto):
+    _ordina(db, sessione, piatto)
+    corpo = client.get(_url(tavolo), headers=H).json()
+    assert corpo["restaurant_name"] == "Trattoria Test"
+    assert corpo["session"]["items"][0]["category"] == "X"
+
+
+def test_quota_da_pagare_solo_alla_romana(client, db, tavolo, sessione, piatto):
+    _ordina(db, sessione, piatto, 1)
+    assert client.get(_url(tavolo), headers=H).json()["session"]["next_share"] is None
+    client.put(_url(tavolo, "/mode"), json={"payment_mode": "OWN"}, headers=H)
+    assert client.get(_url(tavolo), headers=H).json()["session"]["next_share"] is None
+
+
+def test_quota_romana_con_il_resto_all_ultimo(client, db, tavolo, piatto):
+    sessione = TableSession(table_id=tavolo.id, coperti=3)
+    db.add(sessione)
+    db.flush()
+    _ordina(db, sessione, piatto, 1)  # 10.00 su 3 coperti
+    client.put(_url(tavolo, "/mode"), json={"payment_mode": "ROMANA"}, headers=H)
+
+    def quota():
+        return client.get(_url(tavolo), headers=H).json()["session"]["next_share"]
+
+    assert quota() == "3.33"
+    _paga(client, tavolo, {"method": "ONLINE", "customer_nickname": "A"})
+    assert quota() == "3.33"
+    _paga(client, tavolo, {"method": "ONLINE", "customer_nickname": "B"})
+    assert quota() == "3.34"  # l ultimo copre la differenza di arrotondamento
+
+
+def test_quota_romana_assente_senza_ordini(client, tavolo, sessione):
+    client.put(_url(tavolo, "/mode"), json={"payment_mode": "ROMANA"}, headers=H)
+    assert client.get(_url(tavolo), headers=H).json()["session"]["next_share"] is None

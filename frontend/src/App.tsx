@@ -1,4 +1,5 @@
-import { Route, Routes, useParams } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
+import { CustomerApp } from './customer/CustomerApp'
 
 function Message({ title, children }: { title: string; children?: string }) {
   return (
@@ -23,12 +24,6 @@ function Message({ title, children }: { title: string; children?: string }) {
   )
 }
 
-function TablePage() {
-  const { tableId } = useParams()
-  // Segnaposto: il percorso cliente (vista tavolo, modalità, pagamento) arriva nella PR successiva.
-  return <Message title={`Tavolo ${tableId}`}>Il pagamento al tavolo sarà presto disponibile.</Message>
-}
-
 export default function App() {
   return (
     <Routes>
@@ -36,7 +31,7 @@ export default function App() {
         path="/"
         element={<Message title="Conto Giusto">Ordini e pagamenti al tavolo, senza stress.</Message>}
       />
-      <Route path="/table/:tableId" element={<TablePage />} />
+      <Route path="/table/:tableId" element={<CustomerApp />} />
       <Route path="*" element={<Message title="Pagina non trovata" />} />
     </Routes>
   )

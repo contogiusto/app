@@ -344,6 +344,10 @@
       },
       "PublicOrderItemOut": {
         "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
           "id": {
             "title": "Id",
             "type": "integer"
@@ -372,6 +376,7 @@
         "required": [
           "id",
           "name",
+          "category",
           "quantity",
           "unit_price",
           "line_total",
@@ -424,6 +429,17 @@
             "title": "Items",
             "type": "array"
           },
+          "next_share": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Share"
+          },
           "paid_total": {
             "title": "Paid Total",
             "type": "string"
@@ -465,6 +481,7 @@
           "total",
           "paid_total",
           "remaining",
+          "next_share",
           "items",
           "payments"
         ],
@@ -473,6 +490,10 @@
       },
       "PublicTableOut": {
         "properties": {
+          "restaurant_name": {
+            "title": "Restaurant Name",
+            "type": "string"
+          },
           "session": {
             "anyOf": [
               {
@@ -489,6 +510,7 @@
           }
         },
         "required": [
+          "restaurant_name",
           "table_number",
           "session"
         ],
