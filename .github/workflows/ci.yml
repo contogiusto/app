@@ -51,6 +51,10 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      - name: I tipi dell'API sono aggiornati
+        run: |
+          npm run api:types
+          git diff --exit-code -- src/api/schema.d.ts
       - run: npm run lint
       - run: npm run test
       - run: npm run build

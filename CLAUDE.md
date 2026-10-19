@@ -21,7 +21,16 @@ cd frontend && npm run lint && npm run test && npm run build
 # Migration (da backend/)
 uv run alembic revision --autogenerate -m "descrizione"
 uv run alembic upgrade head
+
+# Dopo ogni modifica a endpoint o schemi dell'API: aggiorna OpenAPI e tipi del frontend
+cd backend && uv run python -m app.export_openapi && cd ../frontend && npm run api:types
 ```
+
+## Frontend
+- Tipi dell'API **generati**: `frontend/src/api/schema.d.ts` deriva da `backend/openapi.json`; non si modificano a mano. Il test `test_openapi_sync` (backend) e un passo della CI (frontend) falliscono se sono in ritardo. Il generatore gira con `npx` a versione fissa perché `openapi-typescript` non supporta ancora TypeScript 7.
+- Tutte le chiamate passano da `src/api/client.ts` (`api.*`, errori come `ApiError` con messaggio pronto per l'utente). Gli importi arrivano come stringhe ("8.50") e si usano in centesimi interi con `src/lib/money.ts`.
+- Il tema (colori, font, bottoni, card) è in `src/styles/theme.css`, preso dal prototipo; i componenti base in `src/ui/`. I font sono self-hosted (`@fontsource`), niente Google Fonts.
+- Il token del QR resta fuori dall'URL delle chiamate: va nell'header `X-Table-Token` (già gestito dal client).
 
 ## Regole
 - Mai committare su `main` né pushare su `main`: si lavora su `feat/*`, `fix/*`, `chore/*` e si apre una PR.

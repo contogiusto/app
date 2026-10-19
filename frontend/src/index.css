@@ -1,7 +1,7 @@
-:root {
-  font-family: system-ui, sans-serif;
-}
+@import './styles/theme.css';
 
-body {
-  margin: 0;
+html,
+body,
+#root {
+  height: 100%;
 }
