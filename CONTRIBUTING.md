@@ -13,3 +13,6 @@
 
 ## Setup locale
 Vedi i comandi in [CLAUDE.md](CLAUDE.md). Prerequisiti: Python ≥3.11, `uv`, Node ≥20, Docker.
+
+## Protezione di main
+L'org è sul piano GitHub Free: i repo privati non permettono la branch protection. Finché non cambia, la regola "niente push su `main`, solo PR con CI verde" è garantita da convenzione, dai `deny` in `.claude/settings.json` e dalla CI; `scripts/setup-github.sh` applicherà la protezione quando sarà disponibile.
