@@ -11,8 +11,8 @@ Derivato dalla prima bozza del progetto (backend Spring Boot, ora da riscrivere 
 ```
 Restaurant └── MenuItem (name, category, price, available)
 Table (restaurantId, number, qrCodeToken)
-Session (tableId, openedAt, closedAt, status, coperti, paymentMode, version)
-  └── OrderItem (sessionId, menuItemId, quantity, addedBy)
+TableSession (tableId, openedAt, closedAt, status, coperti, paymentMode, version)   # tabella `table_session`
+  └── OrderItem (sessionId, menuItemId, quantity, unitPrice, addedBy)   # unitPrice = prezzo congelato all'ordine
 Payment (sessionId, amount, mode, paymentMethod, status, customerNickname)
   └── PaymentItem (paymentId, orderItemId, quantity)   # solo modalità OWN
 ```
