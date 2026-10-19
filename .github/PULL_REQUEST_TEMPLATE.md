@@ -3,6 +3,7 @@
 
 ## Come l'ho verificato
 - [ ] Test aggiunti/aggiornati
+- [ ] `/code-review` eseguita in locale
 - [ ] Provato sulla preview Vercel della PR
 
 ## Note per il deploy
