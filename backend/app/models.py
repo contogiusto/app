@@ -9,10 +9,12 @@ from sqlalchemy import (
     DateTime,
     Enum,
     ForeignKey,
+    Index,
     Numeric,
     String,
     UniqueConstraint,
     func,
+    text,
     true,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -97,7 +99,16 @@ class TableSession(Base):
     """Sessione di un tavolo (apertura → pagamenti → chiusura). Entità centrale."""
 
     __tablename__ = "table_session"
-    __table_args__ = (CheckConstraint("coperti > 0", name="table_session_coperti_positive"),)
+    __table_args__ = (
+        CheckConstraint("coperti > 0", name="table_session_coperti_positive"),
+        # Max una sessione aperta per tavolo, garantito dal DB anche con richieste concorrenti.
+        Index(
+            "uq_table_session_one_open",
+            "table_id",
+            unique=True,
+            postgresql_where=text("status = 'OPEN'"),
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     table_id: Mapped[int] = mapped_column(ForeignKey("restaurant_table.id"), index=True)

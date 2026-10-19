@@ -5,13 +5,15 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.routers import auth, menu
+from app.routers import auth, menu, sessions, tables
 
 # Su Vercel tutte le richieste /api/* arrivano a questa app: il prefisso è /api.
 app = FastAPI(title="Conto Giusto API", docs_url="/api/docs", openapi_url="/api/openapi.json")
 
 app.include_router(auth.router)
 app.include_router(menu.router)
+app.include_router(tables.router)
+app.include_router(sessions.router)
 
 
 @app.get("/api/health")

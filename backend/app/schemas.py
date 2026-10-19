@@ -3,7 +3,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models import UserRole
+from app.models import PaymentMode, SessionStatus, UserRole
 
 Prezzo = Annotated[Decimal, Field(ge=0, max_digits=8, decimal_places=2)]
 
@@ -43,3 +43,29 @@ class MenuItemOut(BaseModel):
     # Stringa con due decimali ("8.50"): niente errori di arrotondamento lato client.
     price: Annotated[Decimal, Field(decimal_places=2)]
     available: bool
+
+
+class TableIn(BaseModel):
+    number: Annotated[int, Field(ge=1, le=9999)]
+
+
+class TableOut(BaseModel):
+    id: int
+    number: int
+    # Id della sessione aperta sul tavolo, se c'e'.
+    open_session_id: int | None
+
+
+class SessionIn(BaseModel):
+    table_id: int
+    coperti: Annotated[int, Field(ge=1, le=100)]
+
+
+class SessionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    table_id: int
+    status: SessionStatus
+    coperti: int
+    payment_mode: PaymentMode | None
