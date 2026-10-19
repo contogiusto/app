@@ -36,5 +36,6 @@ uv run alembic upgrade head
 - App a ristorante singolo per ora: menu e tavoli appartengono al primo `Restaurant` (creato al primo piatto o tavolo).
 - Il QR di un tavolo (`GET /api/tables/{id}/qr.svg`, solo ADMIN) codifica `FRONTEND_URL/table/<id>?token=<qr_token>`: `FRONTEND_URL` va impostato su Vercel con il dominio di produzione. Il `qr_token` non è mai nell'elenco tavoli.
 - Una sola sessione `OPEN` per tavolo: lo garantisce un indice unico parziale nel DB (le richieste concorrenti perdenti ricevono 409).
+- Ordini (`/api/sessions/{id}/orders`): `unit_price` è il prezzo del menu congelato al momento dell'ordine; il totale è sempre la somma di `quantity × unit_price`, mai ricalcolato dal menu. Ordini modificabili solo a sessione `OPEN` e **finché non esiste alcun pagamento** (altrimenti 409); una voce già pagata non si rimuove.
 - Il codice dei pagamenti è simulato finché non si decide l'integrazione reale (es. Stripe).
 - Commit in stile Conventional Commits (`feat:`, `fix:`, `chore:`…).
