@@ -23,3 +23,6 @@ Thumbs.db
 
 # Claude Code (locale)
 .claude/settings.local.json
+
+# QR scaricati a mano per prova: contengono il token del tavolo, non vanno nel repo
+qr*.svg
