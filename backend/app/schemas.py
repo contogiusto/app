@@ -69,3 +69,23 @@ class SessionOut(BaseModel):
     status: SessionStatus
     coperti: int
     payment_mode: PaymentMode | None
+    total: Decimal
+
+
+class OrderIn(BaseModel):
+    menu_item_id: int
+    quantity: Annotated[int, Field(ge=1, le=99)]
+
+
+class OrderItemOut(BaseModel):
+    id: int
+    menu_item_id: int
+    name: str
+    quantity: int
+    unit_price: Decimal
+    line_total: Decimal
+
+
+class OrderListOut(BaseModel):
+    items: list[OrderItemOut]
+    total: Decimal
