@@ -502,6 +502,8 @@ export interface components {
         PaymentStatus: "PENDING" | "COMPLETED" | "CASH";
         /** PublicOrderItemOut */
         PublicOrderItemOut: {
+            /** Category */
+            category: string;
             /** Id */
             id: number;
             /** Line Total */
@@ -535,6 +537,8 @@ export interface components {
             id: number;
             /** Items */
             items: components["schemas"]["PublicOrderItemOut"][];
+            /** Next Share */
+            next_share: string | null;
             /** Paid Total */
             paid_total: string;
             payment_mode: components["schemas"]["PaymentMode"] | null;
@@ -548,6 +552,8 @@ export interface components {
         };
         /** PublicTableOut */
         PublicTableOut: {
+            /** Restaurant Name */
+            restaurant_name: string;
             session: components["schemas"]["PublicSessionOut"] | null;
             /** Table Number */
             table_number: number;

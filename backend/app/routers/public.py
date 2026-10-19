@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 from app import payments
 from app.deps import DbSession
 from app.errors import Conflict, NotFound
-from app.models import OrderItem, RestaurantTable, SessionStatus, TableSession
+from app.models import OrderItem, Restaurant, RestaurantTable, SessionStatus, TableSession
 from app.routers.orders import totale_sessione
 from app.schemas import (
     ModeIn,
@@ -57,8 +57,11 @@ def _sessione_aperta(db: Session, table: RestaurantTable) -> TableSession | None
 
 def _vista(db: Session, table: RestaurantTable) -> PublicTableOut:
     session = _sessione_aperta(db, table)
+    restaurant_name = db.get(Restaurant, table.restaurant_id).name
     if session is None:
-        return PublicTableOut(table_number=table.number, session=None)
+        return PublicTableOut(
+            restaurant_name=restaurant_name, table_number=table.number, session=None
+        )
 
     righe = db.scalars(
         select(OrderItem).where(OrderItem.session_id == session.id).order_by(OrderItem.id)
@@ -66,6 +69,7 @@ def _vista(db: Session, table: RestaurantTable) -> PublicTableOut:
     pagate = payments.quantita_pagate(db, session.id)
     pagamenti, pagato, residuo = payments.riepilogo(db, session.id)
     return PublicTableOut(
+        restaurant_name=restaurant_name,
         table_number=table.number,
         session=PublicSessionOut(
             id=session.id,
@@ -75,10 +79,12 @@ def _vista(db: Session, table: RestaurantTable) -> PublicTableOut:
             total=totale_sessione(db, session.id),
             paid_total=pagato,
             remaining=residuo,
+            next_share=payments.prossima_quota(db, session),
             items=[
                 PublicOrderItemOut(
                     id=r.id,
                     name=r.menu_item.name,
+                    category=r.menu_item.category,
                     quantity=r.quantity,
                     unit_price=r.unit_price,
                     line_total=r.unit_price * r.quantity,

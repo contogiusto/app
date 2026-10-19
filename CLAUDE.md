@@ -31,6 +31,9 @@ cd backend && uv run python -m app.export_openapi && cd ../frontend && npm run a
 - Tutte le chiamate passano da `src/api/client.ts` (`api.*`, errori come `ApiError` con messaggio pronto per l'utente). Gli importi arrivano come stringhe ("8.50") e si usano in centesimi interi con `src/lib/money.ts`.
 - Il tema (colori, font, bottoni, card) è in `src/styles/theme.css`, preso dal prototipo; i componenti base in `src/ui/`. I font sono self-hosted (`@fontsource`), niente Google Fonts.
 - Il token del QR resta fuori dall'URL delle chiamate: va nell'header `X-Table-Token` (già gestito dal client).
+- Percorso cliente (`/table/:id?token=…`) in `src/customer/`: `CustomerApp` (dati, polling ogni 3 s, passi), `screens.tsx` (schermate dal design), `logic.ts` (funzioni pure), `storage.ts` (cosa ricorda il browser). Il server decide quote e chiusura (`next_share`, sessione assente = conto chiuso): il frontend li mostra soltanto, non li ricalcola.
+- Differenze volute dal prototipo: nessun form carta (i pagamenti sono simulati e non si devono far digitare numeri di carta in un form finto: con un provider reale i campi li ospita il provider); l'elenco dei commensali mostra solo chi ha già pagato (il backend non registra chi "entra" al tavolo); l'identità del cliente vale per una sola sessione.
+- Nei test, `src/test/setup.ts` smonta i componenti a fine test: non rimuoverlo o i test si influenzano a vicenda.
 
 ## Regole
 - Mai committare su `main` né pushare su `main`: si lavora su `feat/*`, `fix/*`, `chore/*` e si apre una PR.

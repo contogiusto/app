@@ -33,6 +33,14 @@ const PATHS = {
       <path d="M8 11V8a4 4 0 018 0v3" />
     </g>
   ),
+  qr: (
+    <g>
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <path d="M14 14h3v3M21 14v.01M17 21h4v-4M14 21h.01" />
+    </g>
+  ),
   receipt: (
     <g>
       <path d="M5 3h14v18l-2.5-1.5L14 21l-2-1.5L10 21l-2.5-1.5L5 21z" />

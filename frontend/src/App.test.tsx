@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
@@ -5,9 +6,11 @@ import App from './App'
 
 function renderAt(path: string) {
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <App />
-    </MemoryRouter>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MemoryRouter initialEntries={[path]}>
+        <App />
+      </MemoryRouter>
+    </QueryClientProvider>,
   )
 }
 
@@ -17,9 +20,9 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Conto Giusto' })).toBeInTheDocument()
   })
 
-  it('la pagina del tavolo legge il numero dall’indirizzo', () => {
-    renderAt('/table/3?token=abc')
-    expect(screen.getByRole('heading', { name: 'Tavolo 3' })).toBeInTheDocument()
+  it('la pagina del tavolo senza token chiede di scansionare il QR', () => {
+    renderAt('/table/3')
+    expect(screen.getByRole('heading', { name: 'QR non valido' })).toBeInTheDocument()
   })
 
   it('un indirizzo sconosciuto mostra "Pagina non trovata"', () => {
