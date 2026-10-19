@@ -3,7 +3,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models import PaymentMode, SessionStatus, UserRole
+from app.models import PaymentMethod, PaymentMode, PaymentStatus, SessionStatus, UserRole
 
 Prezzo = Annotated[Decimal, Field(ge=0, max_digits=8, decimal_places=2)]
 
@@ -89,3 +89,37 @@ class OrderItemOut(BaseModel):
 class OrderListOut(BaseModel):
     items: list[OrderItemOut]
     total: Decimal
+
+
+class ModeIn(BaseModel):
+    payment_mode: PaymentMode
+
+
+class PaymentItemIn(BaseModel):
+    order_item_id: int
+    quantity: Annotated[int, Field(ge=1, le=99)]
+
+
+class PaymentIn(BaseModel):
+    method: PaymentMethod
+    customer_nickname: Annotated[str, Field(min_length=1, max_length=80)]
+    # Solo per la modalità OWN: le voci (e quantità) che questa persona paga.
+    items: list[PaymentItemIn] | None = None
+
+
+class PaymentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    session_id: int
+    amount: Decimal
+    mode: PaymentMode
+    method: PaymentMethod
+    status: PaymentStatus
+    customer_nickname: str
+
+
+class PaymentListOut(BaseModel):
+    items: list[PaymentOut]
+    paid_total: Decimal
+    remaining: Decimal
