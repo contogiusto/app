@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 _GIA_APERTA = "Il tavolo ha già una sessione aperta"
 
 
-def _esito(db: Session, session: TableSession) -> SessionOut:
+def esito_sessione(db: Session, session: TableSession) -> SessionOut:
     return SessionOut(
         id=session.id,
         table_id=session.table_id,
@@ -44,7 +44,7 @@ def apri_sessione(data: SessionIn, db: DbSession, _staff: StaffUser) -> SessionO
         # Due camerieri hanno aperto lo stesso tavolo nello stesso istante: vince il primo.
         db.rollback()
         raise HTTPException(status.HTTP_409_CONFLICT, _GIA_APERTA) from None
-    return _esito(db, session)
+    return esito_sessione(db, session)
 
 
 @router.get("/{session_id}")
@@ -52,4 +52,4 @@ def leggi_sessione(session_id: int, db: DbSession, _staff: StaffUser) -> Session
     session = db.get(TableSession, session_id)
     if session is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Sessione non trovata")
-    return _esito(db, session)
+    return esito_sessione(db, session)
