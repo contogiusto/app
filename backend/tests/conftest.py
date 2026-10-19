@@ -40,3 +40,42 @@ def db(engine):
         yield session
         session.close()
         transaction.rollback()
+
+
+@pytest.fixture
+def client(db):
+    """TestClient che usa la sessione di test (annullata a fine test)."""
+    from fastapi.testclient import TestClient
+
+    from app.db import get_db
+    from app.main import app
+
+    app.dependency_overrides[get_db] = lambda: db
+    yield TestClient(app)
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def make_user(db):
+    from app.models import AppUser
+    from app.security import hash_password
+
+    def _make(username: str, role, password: str = "pw-di-test"):
+        user = AppUser(username=username, password_hash=hash_password(password), role=role)
+        db.add(user)
+        db.flush()
+        return user
+
+    return _make
+
+
+@pytest.fixture
+def auth_header(make_user):
+    """Header Authorization per un utente con il ruolo richiesto."""
+    from app.security import create_access_token
+
+    def _header(role) -> dict[str, str]:
+        user = make_user(f"user-{role.value.lower()}", role)
+        return {"Authorization": f"Bearer {create_access_token(user)}"}
+
+    return _header
