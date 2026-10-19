@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Env e segreti
+.env
+.env.*
+!.env.example
+
+# Vercel / editor / OS
+.vercel/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Claude Code (locale)
+.claude/settings.local.json

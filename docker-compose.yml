@@ -1,0 +1,15 @@
+# Solo database locale per lo sviluppo; backend e frontend girano con uv / npm.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: perfe
+      POSTGRES_USER: perfe
+      POSTGRES_PASSWORD: perfe
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
