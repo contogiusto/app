@@ -123,3 +123,40 @@ class PaymentListOut(BaseModel):
     items: list[PaymentOut]
     paid_total: Decimal
     remaining: Decimal
+
+
+class PublicOrderItemOut(BaseModel):
+    id: int
+    name: str
+    quantity: int
+    unit_price: Decimal
+    line_total: Decimal
+    paid_quantity: int
+
+
+class PublicPaymentOut(BaseModel):
+    """Cosa vedono gli altri commensali: nome, importo e stato, nient'altro."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    customer_nickname: str
+    amount: Decimal
+    method: PaymentMethod
+    status: PaymentStatus
+
+
+class PublicSessionOut(BaseModel):
+    id: int
+    status: SessionStatus
+    coperti: int
+    payment_mode: PaymentMode | None
+    total: Decimal
+    paid_total: Decimal
+    remaining: Decimal
+    items: list[PublicOrderItemOut]
+    payments: list[PublicPaymentOut]
+
+
+class PublicTableOut(BaseModel):
+    table_number: int
+    session: PublicSessionOut | None
