@@ -54,3 +54,4 @@ def require_roles(*roles: UserRole):
 
 
 AdminUser = Annotated[AppUser, Depends(require_roles(UserRole.ADMIN))]
+StaffUser = Annotated[AppUser, Depends(require_roles(UserRole.ADMIN, UserRole.WAITER))]

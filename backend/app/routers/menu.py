@@ -8,7 +8,7 @@ from app.schemas import MenuItemIn, MenuItemOut
 router = APIRouter(prefix="/api/menu", tags=["menu"])
 
 
-def _ristorante(db: DbSession) -> Restaurant:
+def ristorante_singolo(db: DbSession) -> Restaurant:
     """Per ora l'app gestisce un solo ristorante: il primo, creato al primo piatto."""
     restaurant = db.scalar(select(Restaurant).order_by(Restaurant.id).limit(1))
     if restaurant is None:
@@ -44,7 +44,7 @@ def menu_completo(db: DbSession, _admin: AdminUser) -> list[MenuItemOut]:
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 def crea_piatto(data: MenuItemIn, db: DbSession, _admin: AdminUser) -> MenuItemOut:
-    item = MenuItem(restaurant_id=_ristorante(db).id, **data.model_dump())
+    item = MenuItem(restaurant_id=ristorante_singolo(db).id, **data.model_dump())
     db.add(item)
     db.commit()
     return MenuItemOut.model_validate(item)
