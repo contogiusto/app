@@ -12,6 +12,19 @@ concurrency:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: contogiusto
+          POSTGRES_PASSWORD: contogiusto
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U contogiusto" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_SERVER: postgresql+psycopg://contogiusto:contogiusto@localhost:5432
     defaults:
       run:
         working-directory: backend
