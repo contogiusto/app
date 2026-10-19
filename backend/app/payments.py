@@ -54,7 +54,7 @@ def imposta_modalita(db: Session, session_id: int, mode: PaymentMode) -> TableSe
     return session
 
 
-def _quantita_pagate(db: Session, session_id: int) -> dict[int, int]:
+def quantita_pagate(db: Session, session_id: int) -> dict[int, int]:
     rows = db.execute(
         select(PaymentItem.order_item_id, func.sum(PaymentItem.quantity))
         .join(Payment, Payment.id == PaymentItem.payment_id)
@@ -94,7 +94,7 @@ def _voci_own(
     for order_item_id, quantity in selezione:
         richieste[order_item_id] = richieste.get(order_item_id, 0) + quantity
 
-    pagate = _quantita_pagate(db, session.id)
+    pagate = quantita_pagate(db, session.id)
     voci = []
     for order_item_id, quantity in richieste.items():
         item = db.get(OrderItem, order_item_id)
@@ -149,7 +149,7 @@ def _tutto_coperto(db: Session, session: TableSession) -> bool:
     if session.payment_mode == PaymentMode.ROMANA:
         return len(_pagamenti(db, session.id)) >= session.coperti
     ordinate = db.scalars(select(OrderItem).where(OrderItem.session_id == session.id)).all()
-    pagate = _quantita_pagate(db, session.id)
+    pagate = quantita_pagate(db, session.id)
     return bool(ordinate) and all(pagate.get(i.id, 0) >= i.quantity for i in ordinate)
 
 
