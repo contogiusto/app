@@ -18,6 +18,7 @@ export type PaymentMode = Schemas['ModeIn']['payment_mode']
 export type UserRole = Schemas['UserRole']
 export type StaffTable = Schemas['TableOut']
 export type StaffSession = Schemas['SessionOut']
+export type OpenSession = Schemas['OpenSessionOut']
 export type OrderItem = Schemas['OrderItemOut']
 export type OrderList = Schemas['OrderListOut']
 export type PaymentList = Schemas['PaymentListOut']
@@ -142,6 +143,8 @@ export const api = {
           method: 'POST',
           body: { table_id: tableId, coperti },
         }),
+      /** Tutte le sessioni aperte con importi e contanti da confermare, in una sola richiesta. */
+      listOpen: () => authed<OpenSession[]>('/api/sessions/open'),
       get: (sessionId: number) => authed<StaffSession>(`/api/sessions/${sessionId}`),
       setMode: (sessionId: number, paymentMode: PaymentMode) =>
         authed<StaffSession>(`/api/sessions/${sessionId}/mode`, {

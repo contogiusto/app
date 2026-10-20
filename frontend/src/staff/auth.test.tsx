@@ -1,5 +1,5 @@
 import { act, render, renderHook, screen } from '@testing-library/react'
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError, api } from '../api/client'
 import { SESSION_EXPIRED_NOTICE, useAuth } from './auth'
@@ -37,6 +37,29 @@ describe('session', () => {
 })
 
 describe('AuthProvider', () => {
+  it('una schermata che chiede dati appena montata (ricarico della pagina) trova già il token', async () => {
+    const token = fakeJwt(3600)
+    localStorage.setItem('cg:staff', JSON.stringify({ token, role: 'WAITER', username: 'anna' }))
+    const fetchMock = vi.fn().mockResolvedValue(new Response('[]'))
+    vi.stubGlobal('fetch', fetchMock)
+    function Screen() {
+      // Come useQuery: la richiesta parte in un effetto del figlio, che gira prima di quelli del padre.
+      useEffect(() => {
+        void api.staff.tables.list().catch(() => undefined)
+      }, [])
+      return null
+    }
+    render(
+      <AuthProvider>
+        <Screen />
+      </AuthProvider>,
+    )
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const init = fetchMock.mock.calls[0][1] as RequestInit
+    expect(init.headers).toMatchObject({ Authorization: `Bearer ${token}` })
+    vi.unstubAllGlobals()
+  })
+
   it('il login salva token, ruolo e utente (anche nello storage)', async () => {
     const token = fakeJwt(3600)
     vi.spyOn(api, 'login').mockResolvedValue({ access_token: token, token_type: 'bearer', role: 'ADMIN' })

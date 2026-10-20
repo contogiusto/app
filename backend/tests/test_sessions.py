@@ -102,3 +102,68 @@ def test_il_database_vieta_due_sessioni_aperte_sullo_stesso_tavolo(db, tavolo):
     db.add(TableSession(table_id=tavolo.id, coperti=3))
     with pytest.raises(IntegrityError):
         db.flush()
+
+
+def _sessione_con_pagamenti(db, tavolo, *, stati):
+    """Sessione aperta con un piatto da 10,00 e un pagamento da 5,00 per ogni stato dato."""
+    from app.models import MenuItem, OrderItem, Payment, PaymentMethod, PaymentMode, PaymentStatus
+
+    piatto = MenuItem(restaurant_id=tavolo.restaurant_id, name="Pasta", category="Primi", price=10)
+    db.add(piatto)
+    db.flush()
+    s = TableSession(table_id=tavolo.id, coperti=4, payment_mode=PaymentMode.ROMANA)
+    db.add(s)
+    db.flush()
+    db.add(OrderItem(session_id=s.id, menu_item_id=piatto.id, quantity=1, unit_price=10))
+    for stato in stati:
+        method = PaymentMethod.CASH if stato == PaymentStatus.CASH else PaymentMethod.ONLINE
+        db.add(
+            Payment(
+                session_id=s.id,
+                amount=5,
+                mode=PaymentMode.ROMANA,
+                method=method,
+                status=stato,
+                customer_nickname="Anna",
+            )
+        )
+    db.flush()
+    return s
+
+
+def test_sessioni_aperte_riassumono_conto_e_contanti_da_confermare(client, db, tavolo, auth_header):
+    from app.models import PaymentStatus
+
+    s = _sessione_con_pagamenti(db, tavolo, stati=[PaymentStatus.COMPLETED, PaymentStatus.CASH])
+    r = client.get("/api/sessions/open", headers=auth_header(UserRole.WAITER))
+    assert r.status_code == 200
+    assert r.json() == [
+        {
+            "id": s.id,
+            "table_id": tavolo.id,
+            "coperti": 4,
+            "payment_mode": "ROMANA",
+            "total": "10.00",
+            "paid_total": "10.00",
+            "cash_pending": 1,
+        }
+    ]
+
+
+def test_sessioni_aperte_senza_ordini_ne_pagamenti(client, db, tavolo, auth_header):
+    s = _sessione_con_pagamenti(db, tavolo, stati=[])
+    r = client.get("/api/sessions/open", headers=auth_header(UserRole.WAITER))
+    assert r.json()[0]["paid_total"] == "0.00"
+    assert r.json()[0]["cash_pending"] == 0
+    assert r.json()[0]["id"] == s.id
+
+
+def test_sessioni_aperte_escludono_le_chiuse(client, db, tavolo, auth_header):
+    db.add(TableSession(table_id=tavolo.id, coperti=2, status=SessionStatus.CLOSED))
+    db.flush()
+    r = client.get("/api/sessions/open", headers=auth_header(UserRole.WAITER))
+    assert r.json() == []
+
+
+def test_sessioni_aperte_richiedono_staff(client):
+    assert client.get("/api/sessions/open").status_code == 401

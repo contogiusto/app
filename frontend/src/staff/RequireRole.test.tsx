@@ -5,6 +5,12 @@ import type { UserRole } from '../api/client'
 import App from '../App'
 import { fakeJwt } from './testing'
 
+// Le schermate vere del cameriere hanno i loro test (src/waiter): qui conta solo la rotta.
+vi.mock('../waiter/WaiterApp', async () => {
+  const { StaffLayout } = await import('../staff/StaffLayout')
+  return { default: () => <StaffLayout title="Sala">{null}</StaffLayout> }
+})
+
 // Le schermate vere del ristoratore hanno i loro test (src/admin): qui conta solo la rotta.
 vi.mock('../admin/AdminApp', async () => {
   const { StaffLayout } = await import('../staff/StaffLayout')

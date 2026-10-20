@@ -117,6 +117,56 @@
         "title": "ModeIn",
         "type": "object"
       },
+      "OpenSessionOut": {
+        "description": "Riepilogo di una sessione aperta, per l'elenco tavoli del cameriere.",
+        "properties": {
+          "cash_pending": {
+            "title": "Cash Pending",
+            "type": "integer"
+          },
+          "coperti": {
+            "title": "Coperti",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "paid_total": {
+            "title": "Paid Total",
+            "type": "string"
+          },
+          "payment_mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaymentMode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "table_id": {
+            "title": "Table Id",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "table_id",
+          "coperti",
+          "payment_mode",
+          "total",
+          "paid_total",
+          "cash_pending"
+        ],
+        "title": "OpenSessionOut",
+        "type": "object"
+      },
       "OrderIn": {
         "properties": {
           "menu_item_id": {
@@ -1326,6 +1376,37 @@
           }
         ],
         "summary": "Apri Sessione",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/api/sessions/open": {
+      "get": {
+        "description": "Tutte le sessioni aperte in una sola richiesta: evita di interrogarle una a una.",
+        "operationId": "sessioni_aperte_api_sessions_open_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OpenSessionOut"
+                  },
+                  "title": "Response Sessioni Aperte Api Sessions Open Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Sessioni Aperte",
         "tags": [
           "sessions"
         ]
