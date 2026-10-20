@@ -13,6 +13,7 @@ Webapp per ordini e pagamenti nei ristoranti (ruoli: ristoratore, cameriere, cli
 docker compose up -d postgres                        # DB locale
 cd backend && uv sync && uv run uvicorn app.main:app --reload   # API su :8000
 cd frontend && npm ci && npm run dev                 # UI su :5173 (proxy /api → :8000)
+# Più copie del progetto in parallelo (altre porte): API_PROXY=http://localhost:8001 npm run dev -- --port 5174
 
 # Controlli (gli stessi della CI; i test usano il Postgres di docker compose su :5433)
 cd backend && uv run ruff check . && uv run ruff format --check . && uv run pytest
