@@ -1,12 +1,21 @@
+from decimal import Decimal
+
 from fastapi import APIRouter, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.deps import DbSession, StaffUser
-from app.models import RestaurantTable, SessionStatus, TableSession
+from app.models import (
+    OrderItem,
+    Payment,
+    PaymentStatus,
+    RestaurantTable,
+    SessionStatus,
+    TableSession,
+)
 from app.routers.orders import totale_sessione
-from app.schemas import SessionIn, SessionOut
+from app.schemas import OpenSessionOut, SessionIn, SessionOut
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
@@ -45,6 +54,46 @@ def apri_sessione(data: SessionIn, db: DbSession, _staff: StaffUser) -> SessionO
         db.rollback()
         raise HTTPException(status.HTTP_409_CONFLICT, _GIA_APERTA) from None
     return esito_sessione(db, session)
+
+
+@router.get("/open")
+def sessioni_aperte(db: DbSession, _staff: StaffUser) -> list[OpenSessionOut]:
+    """Tutte le sessioni aperte in una sola richiesta: evita di interrogarle una a una."""
+    totali = dict(
+        db.execute(
+            select(
+                OrderItem.session_id, func.sum(OrderItem.unit_price * OrderItem.quantity)
+            ).group_by(OrderItem.session_id)
+        ).all()
+    )
+    pagamenti = {
+        sid: (pagato, contanti)
+        for sid, pagato, contanti in db.execute(
+            select(
+                Payment.session_id,
+                func.sum(Payment.amount),
+                func.count().filter(Payment.status == PaymentStatus.CASH),
+            ).group_by(Payment.session_id)
+        ).all()
+    }
+    aperte = db.scalars(
+        select(TableSession)
+        .where(TableSession.status == SessionStatus.OPEN)
+        .order_by(TableSession.id)
+    )
+    zero = Decimal("0.00")
+    return [
+        OpenSessionOut(
+            id=s.id,
+            table_id=s.table_id,
+            coperti=s.coperti,
+            payment_mode=s.payment_mode,
+            total=totali.get(s.id, zero),
+            paid_total=pagamenti.get(s.id, (zero, 0))[0],
+            cash_pending=pagamenti.get(s.id, (zero, 0))[1],
+        )
+        for s in aperte
+    ]
 
 
 @router.get("/{session_id}")

@@ -210,6 +210,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/sessions/open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sessioni Aperte
+         * @description Tutte le sessioni aperte in una sola richiesta: evita di interrogarle una a una.
+         */
+        get: operations["sessioni_aperte_api_sessions_open_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/sessions/{session_id}": {
         parameters: {
             query?: never;
@@ -415,6 +435,25 @@ export interface components {
         /** ModeIn */
         ModeIn: {
             payment_mode: components["schemas"]["PaymentMode"];
+        };
+        /**
+         * OpenSessionOut
+         * @description Riepilogo di una sessione aperta, per l'elenco tavoli del cameriere.
+         */
+        OpenSessionOut: {
+            /** Cash Pending */
+            cash_pending: number;
+            /** Coperti */
+            coperti: number;
+            /** Id */
+            id: number;
+            /** Paid Total */
+            paid_total: string;
+            payment_mode: components["schemas"]["PaymentMode"] | null;
+            /** Table Id */
+            table_id: number;
+            /** Total */
+            total: string;
         };
         /** OrderIn */
         OrderIn: {
@@ -1044,6 +1083,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sessioni_aperte_api_sessions_open_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenSessionOut"][];
                 };
             };
         };

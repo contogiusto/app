@@ -72,6 +72,20 @@ class SessionOut(BaseModel):
     total: Decimal
 
 
+class OpenSessionOut(BaseModel):
+    """Riepilogo di una sessione aperta, per l'elenco tavoli del cameriere."""
+
+    id: int
+    table_id: int
+    coperti: int
+    payment_mode: PaymentMode | None
+    total: Decimal
+    # Somma dei pagamenti registrati, contanti in attesa di conferma compresi.
+    paid_total: Decimal
+    # Pagamenti alla cassa che il cameriere deve ancora confermare.
+    cash_pending: int
+
+
 class OrderIn(BaseModel):
     menu_item_id: int
     quantity: Annotated[int, Field(ge=1, le=99)]
