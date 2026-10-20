@@ -23,6 +23,11 @@ export type OrderItem = Schemas['OrderItemOut']
 export type OrderList = Schemas['OrderListOut']
 export type PaymentList = Schemas['PaymentListOut']
 export type MenuItemIn = Schemas['MenuItemIn']
+export type Customer = Schemas['CustomerOut']
+export type CustomerAuth = Schemas['CustomerAuthOut']
+export type CustomerRegister = Schemas['CustomerRegisterIn']
+export type CustomerUpdate = Schemas['CustomerUpdateIn']
+export type CustomerPayment = Schemas['CustomerPaymentOut']
 
 /** Errore restituito dall'API (o di rete, con status 0). `message` è già pronto per l'utente. */
 export class ApiError extends Error {
@@ -110,6 +115,37 @@ async function authed<T>(path: string, options: RequestOptions = {}): Promise<T>
   }
 }
 
+/**
+ * Come `StaffAuthHandlers`, per l'account del cliente (lo imposta `AccountProvider`). Il cliente
+ * può anche non essere collegato: pagare al tavolo funziona da ospite.
+ */
+let customerAuth: StaffAuthHandlers | null = null
+
+export function setCustomerAuth(handlers: StaffAuthHandlers | null) {
+  customerAuth = handlers
+}
+
+/** Richiesta con l'account del cliente: aggiunge il token e, su 401, esegue il logout. */
+async function authedCustomer<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const token = customerAuth?.getToken() ?? null
+  if (token === null) {
+    customerAuth?.onUnauthorized()
+    throw new ApiError(401, SESSION_EXPIRED)
+  }
+  try {
+    return await request<T>(path, { ...options, headers: { ...options.headers, ...bearer(token) } })
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) customerAuth?.onUnauthorized()
+    throw error
+  }
+}
+
+/** Header per le azioni al tavolo: con un cliente collegato il server lega l'azione al suo account. */
+const customerHeader = (): Record<string, string> => {
+  const token = customerAuth?.getToken() ?? null
+  return token === null ? {} : bearer(token)
+}
+
 const bearer = (token: string) => ({ Authorization: `Bearer ${token}` })
 // Il token del QR viaggia in un header, non nell'URL, per restare fuori dai log di accesso.
 const tableToken = (token: string) => ({ 'X-Table-Token': token })
@@ -188,6 +224,24 @@ export const api = {
     },
   },
 
+  /** Account del cliente: serve per lo storico dei pagamenti e per non riscrivere i propri dati. */
+  customer: {
+    register: (data: CustomerRegister) =>
+      request<CustomerAuth>('/api/customer/auth/register', { method: 'POST', body: data }),
+    login: (email: string, password: string) =>
+      request<CustomerAuth>('/api/customer/auth/login', {
+        method: 'POST',
+        body: { email, password },
+      }),
+    me: () => authedCustomer<Customer>('/api/customer/me'),
+    update: (data: CustomerUpdate) =>
+      authedCustomer<Customer>('/api/customer/me', { method: 'PUT', body: data }),
+    /** Elimina l'account e i dati personali (i pagamenti restano, anonimi). Chiede la password. */
+    remove: (password: string) =>
+      authedCustomer<void>('/api/customer/me', { method: 'DELETE', body: { password } }),
+    payments: () => authedCustomer<CustomerPayment[]>('/api/customer/payments'),
+  },
+
   /** Percorso cliente: si accede col tavolo e il token del QR, senza account. */
   table: {
     view: (tableId: number, token: string, signal?: AbortSignal) =>
@@ -203,10 +257,11 @@ export const api = {
         body: { payment_mode: paymentMode },
       }),
 
+    /** Con un cliente collegato il pagamento finisce nel suo storico; senza, si paga da ospite. */
     pay: (tableId: number, token: string, payment: PaymentIn) =>
       request<PaymentOut>(`/api/public/tables/${tableId}/payments`, {
         method: 'POST',
-        headers: tableToken(token),
+        headers: { ...tableToken(token), ...customerHeader() },
         body: payment,
       }),
   },
