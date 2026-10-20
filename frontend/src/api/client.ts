@@ -15,6 +15,13 @@ export type PublicSession = Schemas['PublicSessionOut']
 export type PaymentIn = Schemas['PaymentIn']
 export type PaymentOut = Schemas['PaymentOut']
 export type PaymentMode = Schemas['ModeIn']['payment_mode']
+export type UserRole = Schemas['UserRole']
+export type StaffTable = Schemas['TableOut']
+export type StaffSession = Schemas['SessionOut']
+export type OrderItem = Schemas['OrderItemOut']
+export type OrderList = Schemas['OrderListOut']
+export type PaymentList = Schemas['PaymentListOut']
+export type MenuItemIn = Schemas['MenuItemIn']
 
 /** Errore restituito dall'API (o di rete, con status 0). `message` è già pronto per l'utente. */
 export class ApiError extends Error {
@@ -32,6 +39,8 @@ type RequestOptions = {
   body?: unknown
   headers?: Record<string, string>
   signal?: AbortSignal
+  /** Come leggere la risposta: JSON (default) o file binario (es. il QR in SVG). */
+  as?: 'json' | 'blob'
 }
 
 const BASE_URL = import.meta.env.VITE_API_BASE ?? ''
@@ -49,7 +58,7 @@ async function detailOf(response: Response): Promise<string> {
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body, headers = {}, signal } = options
+  const { method = 'GET', body, headers = {}, signal, as = 'json' } = options
   let response: Response
   try {
     response = await fetch(`${BASE_URL}${path}`, {
@@ -64,7 +73,40 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   }
   if (!response.ok) throw new ApiError(response.status, await detailOf(response))
   if (response.status === 204) return undefined as T
-  return (await response.json()) as T
+  return (as === 'blob' ? await response.blob() : await response.json()) as T
+}
+
+/**
+ * Collegamento con lo stato di login dello staff (lo imposta `AuthProvider`). Sta qui, e non
+ * nel contesto React, perché il client è usato anche fuori dai componenti.
+ */
+type StaffAuthHandlers = {
+  /** Token da usare, o null se non c'è o è già scaduto. */
+  getToken: () => string | null
+  /** Chiamato quando la sessione non vale più (401 o token scaduto): fa il logout. */
+  onUnauthorized: () => void
+}
+let staffAuth: StaffAuthHandlers | null = null
+
+export function setStaffAuth(handlers: StaffAuthHandlers | null) {
+  staffAuth = handlers
+}
+
+const SESSION_EXPIRED = 'Sessione scaduta: accedi di nuovo'
+
+/** Richiesta autenticata: aggiunge il token e, su 401, riporta lo staff al login. */
+async function authed<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const token = staffAuth?.getToken() ?? null
+  if (token === null) {
+    staffAuth?.onUnauthorized()
+    throw new ApiError(401, SESSION_EXPIRED)
+  }
+  try {
+    return await request<T>(path, { ...options, headers: { ...options.headers, ...bearer(token) } })
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) staffAuth?.onUnauthorized()
+    throw error
+  }
 }
 
 const bearer = (token: string) => ({ Authorization: `Bearer ${token}` })
@@ -78,6 +120,70 @@ export const api = {
   me: (token: string) => request<UserOut>('/api/auth/me', { headers: bearer(token) }),
 
   menu: () => request<MenuItemOut[]>('/api/menu'),
+
+  /**
+   * Percorso staff (cameriere e ristoratore): richieste col token del login corrente.
+   * Le scritture di menu e tavoli, e il QR, sono solo per ADMIN (altrimenti 403).
+   */
+  staff: {
+    tables: {
+      list: () => authed<StaffTable[]>('/api/tables'),
+      create: (number: number) => authed<StaffTable>('/api/tables', { method: 'POST', body: { number } }),
+      regenerateQr: (tableId: number) =>
+        authed<void>(`/api/tables/${tableId}/qr/regenerate`, { method: 'POST' }),
+      /** L'SVG del QR richiede l'header Authorization: un <img src> non lo manda, quindi si
+       * scarica come file; per mostrarlo vedi `useQrUrl`. */
+      qr: (tableId: number) => authed<Blob>(`/api/tables/${tableId}/qr.svg`, { as: 'blob' }),
+    },
+
+    sessions: {
+      open: (tableId: number, coperti: number) =>
+        authed<StaffSession>('/api/sessions', {
+          method: 'POST',
+          body: { table_id: tableId, coperti },
+        }),
+      get: (sessionId: number) => authed<StaffSession>(`/api/sessions/${sessionId}`),
+      setMode: (sessionId: number, paymentMode: PaymentMode) =>
+        authed<StaffSession>(`/api/sessions/${sessionId}/mode`, {
+          method: 'PUT',
+          body: { payment_mode: paymentMode },
+        }),
+      close: (sessionId: number) =>
+        authed<StaffSession>(`/api/sessions/${sessionId}/close`, { method: 'POST' }),
+    },
+
+    orders: {
+      list: (sessionId: number) => authed<OrderList>(`/api/sessions/${sessionId}/orders`),
+      add: (sessionId: number, menuItemId: number, quantity: number) =>
+        authed<OrderItem>(`/api/sessions/${sessionId}/orders`, {
+          method: 'POST',
+          body: { menu_item_id: menuItemId, quantity },
+        }),
+      remove: (sessionId: number, itemId: number) =>
+        authed<void>(`/api/sessions/${sessionId}/orders/${itemId}`, { method: 'DELETE' }),
+    },
+
+    payments: {
+      list: (sessionId: number) => authed<PaymentList>(`/api/sessions/${sessionId}/payments`),
+      create: (sessionId: number, payment: PaymentIn) =>
+        authed<PaymentOut>(`/api/sessions/${sessionId}/payments`, {
+          method: 'POST',
+          body: payment,
+        }),
+      confirmCash: (paymentId: number) =>
+        authed<PaymentOut>(`/api/payments/${paymentId}/confirm`, { method: 'PUT' }),
+    },
+
+    /** Il menu pubblico (solo piatti disponibili) è `api.menu()`; qui quello completo. */
+    menu: {
+      all: () => authed<MenuItemOut[]>('/api/menu/all'),
+      create: (item: MenuItemIn) =>
+        authed<MenuItemOut>('/api/menu', { method: 'POST', body: item }),
+      update: (itemId: number, item: MenuItemIn) =>
+        authed<MenuItemOut>(`/api/menu/${itemId}`, { method: 'PUT', body: item }),
+      remove: (itemId: number) => authed<void>(`/api/menu/${itemId}`, { method: 'DELETE' }),
+    },
+  },
 
   /** Percorso cliente: si accede col tavolo e il token del QR, senza account. */
   table: {
