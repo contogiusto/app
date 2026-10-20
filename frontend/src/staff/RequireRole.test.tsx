@@ -11,6 +11,12 @@ vi.mock('../waiter/WaiterApp', async () => {
   return { default: () => <StaffLayout title="Sala">{null}</StaffLayout> }
 })
 
+// Le schermate vere del ristoratore hanno i loro test (src/admin): qui conta solo la rotta.
+vi.mock('../admin/AdminApp', async () => {
+  const { StaffLayout } = await import('../staff/StaffLayout')
+  return { default: () => <StaffLayout title="Gestione">{null}</StaffLayout> }
+})
+
 function signIn(role: UserRole) {
   localStorage.setItem('cg:staff', JSON.stringify({ token: fakeJwt(3600), role, username: 'u' }))
 }
