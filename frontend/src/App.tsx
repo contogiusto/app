@@ -1,5 +1,10 @@
 import { Route, Routes } from 'react-router-dom'
+import AdminApp from './admin/AdminApp'
 import { CustomerApp } from './customer/CustomerApp'
+import { AuthProvider } from './staff/AuthProvider'
+import LoginScreen from './staff/LoginScreen'
+import { RequireRole } from './staff/RequireRole'
+import WaiterApp from './waiter/WaiterApp'
 
 function Message({ title, children }: { title: string; children?: string }) {
   return (
@@ -26,12 +31,38 @@ function Message({ title, children }: { title: string; children?: string }) {
 
 export default function App() {
   return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
+  )
+}
+
+function AppRoutes() {
+  return (
     <Routes>
       <Route
         path="/"
         element={<Message title="Conto Giusto">Ordini e pagamenti al tavolo, senza stress.</Message>}
       />
       <Route path="/table/:tableId" element={<CustomerApp />} />
+      <Route path="/staff/login" element={<LoginScreen />} />
+      {/* Le sotto-rotte di /waiter e /admin le definiscono WaiterApp e AdminApp (path relativi). */}
+      <Route
+        path="/waiter/*"
+        element={
+          <RequireRole roles={['WAITER', 'ADMIN']}>
+            <WaiterApp />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/admin/*"
+        element={
+          <RequireRole roles={['ADMIN']}>
+            <AdminApp />
+          </RequireRole>
+        }
+      />
       <Route path="*" element={<Message title="Pagina non trovata" />} />
     </Routes>
   )
