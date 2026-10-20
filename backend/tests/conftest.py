@@ -87,3 +87,35 @@ def auth_header(make_user):
         return {"Authorization": f"Bearer {create_access_token(user)}"}
 
     return _header
+
+
+@pytest.fixture
+def make_customer(db):
+    from app.models import Customer
+    from app.security import hash_password
+
+    def _make(email="anna@example.com", password="una-password-buona", **kw):
+        customer = Customer(
+            email=email,
+            password_hash=hash_password(password),
+            first_name=kw.pop("first_name", "Anna"),
+            last_name=kw.pop("last_name", "Russo"),
+            **kw,
+        )
+        db.add(customer)
+        db.flush()
+        return customer
+
+    return _make
+
+
+@pytest.fixture
+def customer_header(make_customer):
+    """Header Authorization di un cliente registrato (restituisce anche il cliente)."""
+    from app.security import create_customer_token
+
+    def _header(**kw):
+        customer = make_customer(**kw)
+        return {"Authorization": f"Bearer {create_customer_token(customer)}"}, customer
+
+    return _header

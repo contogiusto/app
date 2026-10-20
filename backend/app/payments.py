@@ -112,7 +112,9 @@ def crea_pagamento(
     method: PaymentMethod,
     nickname: str,
     selezione: list[tuple[int, int]] | None,
+    customer_id: int | None = None,
 ) -> Payment:
+    """`customer_id`: l'account di chi paga, se è loggato (altrimenti è un ospite)."""
     session = _sessione_aperta(db, session_id)
     if session.payment_mode is None:
         raise Conflict("Scegli prima la modalità di pagamento")
@@ -132,6 +134,7 @@ def crea_pagamento(
         # Online è simulato (subito completato); alla cassa attende la conferma del cameriere.
         status=PaymentStatus.COMPLETED if method == PaymentMethod.ONLINE else PaymentStatus.CASH,
         customer_nickname=nickname,
+        customer_id=customer_id,
     )
     db.add(payment)
     db.flush()

@@ -1,7 +1,15 @@
+from datetime import datetime
 from decimal import Decimal
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    StringConstraints,
+    field_validator,
+)
 
 from app.models import PaymentMethod, PaymentMode, PaymentStatus, SessionStatus, UserRole
 
@@ -137,6 +145,108 @@ class PaymentListOut(BaseModel):
     items: list[PaymentOut]
     paid_total: Decimal
     remaining: Decimal
+
+
+# --- Account dei clienti -------------------------------------------------------------------
+
+Nome = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
+
+
+def _citta_o_vuota(value: str | None) -> str | None:
+    """Spazi tolti; una città vuota equivale a nessuna città."""
+    value = (value or "").strip()
+    return value or None
+
+
+class CustomerRegisterIn(BaseModel):
+    email: EmailStr
+    # Massimo 128: l'hash delle password lunghissime sarebbe un modo per appesantire il server.
+    password: Annotated[str, Field(min_length=8, max_length=128)]
+    first_name: Nome
+    last_name: Nome
+    city: Annotated[str | None, Field(max_length=100)] = None
+    accept_privacy: bool
+
+    @field_validator("email")
+    @classmethod
+    def _email_minuscola(cls, value: str) -> str:
+        return value.strip().lower()
+
+    @field_validator("city")
+    @classmethod
+    def _citta(cls, value: str | None) -> str | None:
+        return _citta_o_vuota(value)
+
+    @field_validator("accept_privacy")
+    @classmethod
+    def _privacy_accettata(cls, value: bool) -> bool:
+        if not value:
+            raise ValueError("Per registrarti devi accettare l'informativa sulla privacy")
+        return value
+
+
+class CustomerLoginIn(BaseModel):
+    email: EmailStr
+    password: Annotated[str, Field(max_length=128)]
+
+    @field_validator("email")
+    @classmethod
+    def _email_minuscola(cls, value: str) -> str:
+        return value.strip().lower()
+
+
+class CustomerUpdateIn(BaseModel):
+    first_name: Nome
+    last_name: Nome
+    city: Annotated[str | None, Field(max_length=100)] = None
+
+    @field_validator("city")
+    @classmethod
+    def _citta(cls, value: str | None) -> str | None:
+        return _citta_o_vuota(value)
+
+
+class DeleteAccountIn(BaseModel):
+    password: Annotated[str, Field(max_length=128)]
+
+
+class CustomerOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: str
+    first_name: str
+    last_name: str
+    city: str | None
+
+
+class CustomerAuthOut(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    customer: CustomerOut
+
+
+class CustomerPaymentItemOut(BaseModel):
+    name: str
+    category: str
+    quantity: int
+    unit_price: Decimal
+
+
+class CustomerPaymentOut(BaseModel):
+    """Una voce dello storico. Con `mode` OWN gli `items` sono i piatti che il cliente ha
+    pagato; con ROMANA sono tutti i piatti del tavolo (la quota era una parte del totale)."""
+
+    id: int
+    amount: Decimal
+    mode: PaymentMode
+    method: PaymentMethod
+    status: PaymentStatus
+    created_at: datetime
+    session_opened_at: datetime
+    table_number: int
+    restaurant_name: str
+    items: list[CustomerPaymentItemOut]
 
 
 class PublicOrderItemOut(BaseModel):
