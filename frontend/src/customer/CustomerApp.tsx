@@ -1,23 +1,28 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useAccount } from '../account/account'
+import { loginUrl } from '../account/redirect'
 import { ApiError, api, type PaymentIn, type PaymentMode } from '../api/client'
 import { parseMoney } from '../lib/money'
 import { CenterMessage } from '../ui/layout'
 import './customer.css'
-import { ownTotalCents, toPaymentItems, type Selection } from './logic'
-import { ChooseMode, Hub, Method, OwnSelect, Processing, Settled, Welcome } from './screens'
+import { fullName, ownTotalCents, toPaymentItems, type Selection } from './logic'
+import { ChooseMode, EntryChoice, Hub, Method, OwnSelect, Processing, Settled, Welcome } from './screens'
 import {
+  clearIdentity,
+  loadGuest,
   loadIdentity,
   loadMyPayment,
   loadToken,
+  saveGuest,
   saveIdentity,
   saveMyPayment,
   saveToken,
   type MyPayment,
 } from './storage'
 
-type Step = 'welcome' | 'mode' | 'table' | 'own' | 'method'
+type Step = 'choice' | 'welcome' | 'mode' | 'table' | 'own' | 'method'
 
 const POLL_MS = 3000
 
@@ -46,11 +51,24 @@ export function CustomerApp() {
     refetchInterval: (query) => (isClientError(query.state.error) ? false : POLL_MS),
   })
 
+  const navigate = useNavigate()
+  const { session: account, logout } = useAccount()
+  // Il backend vuole un nome per il pagamento: per chi è collegato è quello dell'account.
+  const accountName = account ? fullName(account.customer.first_name, account.customer.last_name) : null
+
   const [identity, setIdentity] = useState(() => loadIdentity(tableId))
+  const [guest, setGuest] = useState(() => loadGuest(tableId))
   const [myPayment, setMyPayment] = useState<MyPayment | null>(() => loadMyPayment(tableId))
   const [step, setStep] = useState<Step | null>(null)
   const [selection, setSelection] = useState<Selection>({})
   const [paying, setPaying] = useState<PaymentIn['method'] | null>(null)
+
+  // Ricorda l'identità dell'account come si fa con "join": al ricaricamento è già a posto.
+  const sessionId = view.data?.session?.id
+  useEffect(() => {
+    if (!accountName || sessionId === undefined) return
+    saveIdentity(tableId, { sessionId, name: accountName, account: true })
+  }, [tableId, sessionId, accountName])
 
   const setMode = useMutation({
     mutationFn: (mode: PaymentMode) => api.table.setMode(tableId, token as string, mode),
@@ -123,7 +141,7 @@ export function CustomerApp() {
     return (
       <Shell>
         {myPayment ? (
-          <Settled restaurantName={table.restaurant_name} mine={myPayment} />
+          <Settled restaurantName={table.restaurant_name} mine={myPayment} signedIn={account !== null} />
         ) : (
           <CenterMessage
             icon="table"
@@ -136,7 +154,10 @@ export function CustomerApp() {
   }
 
   // L'identità vale solo per la sessione in cui è stata data: al tavolo successivo si riparte.
-  const me = identity?.sessionId === session.id ? identity.name : null
+  // Un nome preso da un account vale solo finché l'account è collegato.
+  const typedMe = identity?.sessionId === session.id && !identity.account ? identity.name : null
+  const me = accountName ?? typedMe
+  const chosenGuest = guest?.sessionId === session.id
   const mine =
     myPayment?.sessionId === session.id
       ? myPayment
@@ -145,7 +166,8 @@ export function CustomerApp() {
           return found ? { amount: found.amount, method: found.method } : null
         })()
 
-  const current: Step = step ?? (me ? (session.payment_mode ? 'table' : 'mode') : 'welcome')
+  const current: Step =
+    step ?? (me ? (session.payment_mode ? 'table' : 'mode') : chosenGuest ? 'welcome' : 'choice')
   const ownCents = ownTotalCents(session.items, selection)
   const amountCents =
     session.payment_mode === 'OWN'
@@ -159,6 +181,20 @@ export function CustomerApp() {
     saveIdentity(tableId, next)
     setIdentity(next)
     setStep(session.payment_mode ? 'table' : 'mode')
+  }
+
+  // Il percorso di ritorno è sempre quello completo del tavolo, token compreso.
+  const tablePath = `/table/${tableId}?token=${encodeURIComponent(token as string)}`
+  const continueAsGuest = () => {
+    const choice = { sessionId: session.id }
+    saveGuest(tableId, choice)
+    setGuest(choice)
+  }
+  const leaveAccount = () => {
+    clearIdentity(tableId)
+    setIdentity(null)
+    setStep(null)
+    logout()
   }
 
   const submit = (method: PaymentIn['method']) => {
@@ -175,6 +211,15 @@ export function CustomerApp() {
 
   return (
     <Shell>
+      {current === 'choice' && (
+        <EntryChoice
+          restaurantName={table.restaurant_name}
+          tableNumber={table.table_number}
+          onLogin={() => navigate(loginUrl(tablePath, 'login'))}
+          onRegister={() => navigate(loginUrl(tablePath, 'register'))}
+          onGuest={continueAsGuest}
+        />
+      )}
       {current === 'welcome' && (
         <Welcome restaurantName={table.restaurant_name} tableNumber={table.table_number} onJoin={join} />
       )}
@@ -192,6 +237,8 @@ export function CustomerApp() {
           session={session}
           me={me}
           mine={mine}
+          account={accountName !== null}
+          onLogout={leaveAccount}
           onPay={() => setStep('method')}
           onChooseOwn={() => setStep('own')}
         />

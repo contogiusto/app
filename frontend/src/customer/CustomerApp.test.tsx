@@ -1,8 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { AccountProvider } from '../account/AccountProvider'
 import { ApiError, type PublicSession, type PublicTable } from '../api/client'
 import { CustomerApp } from './CustomerApp'
 
@@ -56,20 +57,35 @@ const view = (s: PublicSession | null): PublicTable => ({
   session: s,
 })
 
+/** Mostra dove porta il link di accesso (la home vera la costruisce un'altra parte dell'app). */
+function Home() {
+  const { pathname, search } = useLocation()
+  return <p data-testid="home">{pathname + search}</p>
+}
+
 function renderAt(path = '/table/5?token=tok') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[path]}>
-        <Routes>
-          <Route path="/table/:tableId" element={<CustomerApp />} />
-        </Routes>
-      </MemoryRouter>
+      <AccountProvider>
+        <MemoryRouter initialEntries={[path]}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/customer/history" element={<p>Pagina storico</p>} />
+            <Route path="/table/:tableId" element={<CustomerApp />} />
+          </Routes>
+        </MemoryRouter>
+      </AccountProvider>
     </QueryClientProvider>,
   )
 }
 
+async function asGuest(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole('button', { name: 'Continua come ospite' }))
+}
+
 async function enterAs(user: ReturnType<typeof userEvent.setup>, first = 'Anna', last = 'Russo') {
+  if (!screen.queryByLabelText('Nome')) await asGuest(user)
   await user.type(await screen.findByLabelText('Nome'), first)
   await user.type(screen.getByLabelText('Cognome'), last)
   await user.click(screen.getByRole('button', { name: /Entra al tavolo/ }))
@@ -123,6 +139,7 @@ describe('primo cliente', () => {
     )
     renderAt()
 
+    await asGuest(user)
     expect(await screen.findByText(/Benvenuto/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Entra al tavolo/ })).toBeDisabled()
     await enterAs(user)

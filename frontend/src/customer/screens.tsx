@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import type { PaymentMode, PublicSession, PublicTable } from '../api/client'
+import { loginUrl } from '../account/redirect'
 import { parseMoney } from '../lib/money'
 import { Icon, type IconName } from '../ui/Icon'
 import { Body, Footer, Head, Screen } from '../ui/layout'
@@ -25,6 +27,121 @@ function ErrorNote({ message }: { message: string | null }) {
       }}
     >
       {message}
+    </p>
+  )
+}
+
+// ============ SCELTA INIZIALE: ACCEDI, REGISTRATI, OSPITE ============
+
+export function EntryChoice({
+  restaurantName,
+  tableNumber,
+  onLogin,
+  onRegister,
+  onGuest,
+}: {
+  restaurantName: string
+  tableNumber: number
+  onLogin: () => void
+  onRegister: () => void
+  onGuest: () => void
+}) {
+  return (
+    <Screen>
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 26px' }}>
+        <div className="stagger">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 22 }}>
+            <Icon name="pin" size={16} style={{ color: 'var(--accent)' }} />
+            <span className="eyebrow">
+              {restaurantName} · Tavolo {tableNumber}
+            </span>
+          </div>
+          <h1 className="serif" style={{ fontSize: 42, lineHeight: 1, marginBottom: 14 }}>
+            Come vuoi entrare?
+          </h1>
+          <p style={{ color: 'var(--ink-2)', fontSize: 15.5, lineHeight: 1.5, marginBottom: 28 }}>
+            Puoi pagare anche da ospite, senza account. Se accedi o ti registri ritrovi i tuoi
+            pagamenti nello storico.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <button type="button" className="btn btn--block btn--lg" onClick={onLogin}>
+              Accedi <Icon name="arrow" size={18} />
+            </button>
+            <button type="button" className="btn btn--block btn--lg btn--ghost" onClick={onRegister}>
+              Registrati
+            </button>
+            <button
+              type="button"
+              className="btn btn--block btn--lg btn--ghost"
+              onClick={onGuest}
+            >
+              Continua come ospite
+            </button>
+          </div>
+        </div>
+      </main>
+    </Screen>
+  )
+}
+
+/** Discreta, sopra il contenuto: chi sta pagando e come cambiare. */
+export function AccountNote({ name, onLogout }: { name: string; onLogout: () => void }) {
+  return (
+    <p
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        gap: '4px 10px',
+        margin: '0 0 12px',
+        fontSize: 13,
+        color: 'var(--ink-3)',
+      }}
+    >
+      <span>
+        Stai pagando come <b style={{ color: 'var(--ink-2)' }}>{name}</b>.
+      </span>
+      <button
+        type="button"
+        onClick={onLogout}
+        style={{
+          border: 'none',
+          background: 'transparent',
+          padding: 0,
+          font: 'inherit',
+          fontWeight: 600,
+          color: 'var(--accent)',
+          textDecoration: 'underline',
+          cursor: 'pointer',
+        }}
+      >
+        Non sei tu? Esci
+      </button>
+    </p>
+  )
+}
+
+/** Dopo il pagamento: chi è collegato sa dove ritrovarlo, l'ospite riceve un invito discreto. */
+export function PostPaymentNote({ signedIn, tone = 'olive' }: { signedIn: boolean; tone?: 'olive' | 'plain' }) {
+  const color = tone === 'olive' ? 'var(--olive-deep)' : 'var(--ink-2)'
+  const link = { color: 'inherit', fontWeight: 700 } as const
+  return (
+    <p style={{ fontSize: 13, color, marginTop: 10, lineHeight: 1.45 }}>
+      {signedIn ? (
+        <>
+          Il pagamento è nel tuo storico.{' '}
+          <Link to="/customer/history" style={link}>
+            Vai allo storico
+          </Link>
+        </>
+      ) : (
+        <>
+          Vuoi ritrovare questo pagamento?{' '}
+          <Link to={loginUrl('/customer/home', 'register')} style={link}>
+            Crea un account
+          </Link>
+        </>
+      )}
     </p>
   )
 }
@@ -216,6 +333,8 @@ export function Hub({
   session,
   me,
   mine,
+  account,
+  onLogout,
   onPay,
   onChooseOwn,
 }: {
@@ -223,6 +342,9 @@ export function Hub({
   session: PublicSession
   me: string
   mine: Pick<MyPayment, 'amount' | 'method'> | null
+  /** C'è un account collegato (il nome è quello dell'account). */
+  account: boolean
+  onLogout: () => void
   onPay: () => void
   onChooseOwn: () => void
 }) {
@@ -254,6 +376,7 @@ export function Hub({
         right={<Initial name={me} size={38} />}
       />
       <Body>
+        {account && <AccountNote name={me} onLogout={onLogout} />}
         <section className="card pop" style={{ padding: 18, marginBottom: 14 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
             <span className="eyebrow">Pagamento del tavolo</span>
@@ -330,6 +453,7 @@ export function Hub({
                 </>
               )}
             </p>
+            <PostPaymentNote signedIn={account} />
           </section>
         ) : (
           <section
@@ -610,7 +734,15 @@ export function Processing() {
   )
 }
 
-export function Settled({ restaurantName, mine }: { restaurantName: string; mine: Pick<MyPayment, 'amount' | 'method'> }) {
+export function Settled({
+  restaurantName,
+  mine,
+  signedIn,
+}: {
+  restaurantName: string
+  mine: Pick<MyPayment, 'amount' | 'method'>
+  signedIn: boolean
+}) {
   return (
     <Screen>
       <main
@@ -640,6 +772,7 @@ export function Settled({ restaurantName, mine }: { restaurantName: string; mine
         <div className="chip chip--olive" style={{ marginTop: 4 }}>
           La tua quota: <Money cents={parseMoney(mine.amount)} /> · {mine.method === 'ONLINE' ? 'Online' : 'Cassa'}
         </div>
+        <PostPaymentNote signedIn={signedIn} tone="plain" />
       </main>
     </Screen>
   )
