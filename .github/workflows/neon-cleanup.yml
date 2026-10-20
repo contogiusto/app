@@ -1,0 +1,62 @@
+name: Pulizia branch Neon
+
+# L'integrazione Neon-Vercel crea un branch del database per ogni anteprima e il piano gratuito
+# ne ammette pochi: finiti, i deploy falliscono. Qui si eliminano quelli che non servono più.
+# Serve il secret NEON_API_KEY; senza, il job si ferma senza dare errore.
+
+on:
+  pull_request:
+    types: [closed]
+  schedule:
+    - cron: "0 5 * * 1" # ogni lunedì, per raccogliere ciò che sfugge alle PR
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Elimina davvero (lascia spento per una prova che mostra soltanto)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: neon-cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    env:
+      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+      # Non è un segreto: senza la chiave API non permette nulla.
+      NEON_PROJECT_ID: crimson-recipe-12652791
+    steps:
+      - name: Controlla che la chiave sia configurata
+        id: chiave
+        run: |
+          if [ -z "$NEON_API_KEY" ]; then
+            echo "::notice::Secret NEON_API_KEY non configurato: pulizia saltata."
+            echo "presente=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "presente=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.chiave.outputs.presente == 'true'
+
+      - name: Elimina i branch di anteprima orfani
+        if: steps.chiave.outputs.presente == 'true'
+        env:
+          EVENT: ${{ github.event_name }}
+          # Valori passati come variabili d'ambiente, mai dentro lo script: niente injection.
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          APPLY_INPUT: ${{ inputs.apply }}
+          REPO: ${{ github.repository }}
+        run: |
+          args=(--project-id "$NEON_PROJECT_ID" --repo "$REPO")
+          if [ "$EVENT" = "pull_request" ]; then
+            args+=(--closed-ref "$HEAD_REF" --apply)
+          elif [ "$EVENT" = "schedule" ] || [ "$APPLY_INPUT" = "true" ]; then
+            args+=(--apply)
+          fi
+          python3 scripts/neon_cleanup.py "${args[@]}"
