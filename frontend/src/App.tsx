@@ -1,4 +1,9 @@
 import { Route, Routes } from 'react-router-dom'
+import AccountArea from './account/AccountArea'
+import { AccountProvider } from './account/AccountProvider'
+import HomePage from './account/HomePage'
+import PrivacyPage from './account/PrivacyPage'
+import { RequireCustomer } from './account/RequireCustomer'
 import AdminApp from './admin/AdminApp'
 import { CustomerApp } from './customer/CustomerApp'
 import { AuthProvider } from './staff/AuthProvider'
@@ -32,7 +37,9 @@ function Message({ title, children }: { title: string; children?: string }) {
 export default function App() {
   return (
     <AuthProvider>
-      <AppRoutes />
+      <AccountProvider>
+        <AppRoutes />
+      </AccountProvider>
     </AuthProvider>
   )
 }
@@ -40,9 +47,16 @@ export default function App() {
 function AppRoutes() {
   return (
     <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+      {/* Area del cliente registrato: le sotto-rotte le definisce AccountArea. */}
       <Route
-        path="/"
-        element={<Message title="Conto Giusto">Ordini e pagamenti al tavolo, senza stress.</Message>}
+        path="/customer/*"
+        element={
+          <RequireCustomer>
+            <AccountArea />
+          </RequireCustomer>
+        }
       />
       <Route path="/table/:tableId" element={<CustomerApp />} />
       <Route path="/staff/login" element={<LoginScreen />} />
