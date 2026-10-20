@@ -87,8 +87,9 @@ export interface paths {
         /**
          * Elimina Account
          * @description Cancella l'account e i dati personali. I pagamenti restano (servono al ristorante) ma
-         *     non sono più legati a nessuna persona. Serve la password: un telefono lasciato sbloccato
-         *     non basta a distruggere l'account.
+         *     non sono più legati a nessuna persona, e il nome che l'utente aveva digitato al tavolo
+         *     (di solito nome e cognome) viene sostituito. Serve la password: un telefono lasciato
+         *     sbloccato non basta a distruggere l'account.
          */
         delete: operations["elimina_account_api_customer_me_delete"];
         options?: never;

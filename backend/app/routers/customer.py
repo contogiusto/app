@@ -11,7 +11,7 @@ from collections import defaultdict
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException, Request, Response, status
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 
 from app import ratelimit
@@ -43,6 +43,8 @@ router = APIRouter(prefix="/api/customer", tags=["customer"])
 
 # Quanti pagamenti restituisce lo storico (i più recenti).
 STORICO_MAX = 100
+# Al posto del nome digitato al tavolo sui pagamenti di un account eliminato.
+NOME_CLIENTE_ELIMINATO = "Cliente eliminato"
 _CREDENZIALI = "Credenziali non valide"
 
 
@@ -131,14 +133,21 @@ def aggiorna_profilo(
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 def elimina_account(data: DeleteAccountIn, customer: CurrentCustomer, db: DbSession) -> Response:
     """Cancella l'account e i dati personali. I pagamenti restano (servono al ristorante) ma
-    non sono più legati a nessuna persona. Serve la password: un telefono lasciato sbloccato
-    non basta a distruggere l'account."""
+    non sono più legati a nessuna persona, e il nome che l'utente aveva digitato al tavolo
+    (di solito nome e cognome) viene sostituito. Serve la password: un telefono lasciato
+    sbloccato non basta a distruggere l'account."""
     chiave = f"cust-delete:{customer.id}"
     massimo, finestra = settings.rate_limit_login_user_max, settings.rate_limit_login_window
     ratelimit.verifica(chiave, massimo, finestra)
     if not verify_password(data.password, customer.password_hash):
         ratelimit.colpisci(chiave, massimo, finestra)
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Password non corretta")
+    # Prima di cancellare l'account: dopo, il collegamento ai suoi pagamenti non c'è più.
+    db.execute(
+        update(Payment)
+        .where(Payment.customer_id == customer.id)
+        .values(customer_nickname=NOME_CLIENTE_ELIMINATO)
+    )
     db.delete(customer)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

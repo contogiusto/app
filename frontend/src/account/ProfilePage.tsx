@@ -210,8 +210,9 @@ function DeleteDialog({ onClose }: { onClose: () => void }) {
           password. Non potrai più entrare.
         </p>
         <p style={{ fontSize: 14.5, lineHeight: 1.5, marginBottom: 16, color: 'var(--ink-2)' }}>
-          <strong>Resta:</strong> i pagamenti già fatti, ma non più collegati a te: servono al
-          ristorante per i suoi conti. Il tuo storico non sarà più consultabile.
+          <strong>Resta:</strong> i pagamenti già fatti, ma non più collegati a te e con il nome
+          sostituito da «Cliente eliminato»: servono al ristorante per i suoi conti. Il tuo storico
+          non sarà più consultabile.
         </p>
         <label className="field-label" htmlFor="delete-password">
           Password
