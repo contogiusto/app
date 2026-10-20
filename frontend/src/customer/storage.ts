@@ -6,7 +6,9 @@
 
 import type { PaymentIn } from '../api/client'
 
-export type Identity = { sessionId: number; name: string }
+/** `account`: il nome viene dall'account collegato (non digitato): se si esce non vale più. */
+export type Identity = { sessionId: number; name: string; account?: boolean }
+export type GuestChoice = { sessionId: number }
 export type MyPayment = {
   sessionId: number
   amount: string
@@ -42,6 +44,18 @@ export const saveToken = (tableId: number, token: string) => write(tableId, 'tok
 export const loadIdentity = (tableId: number) => read<Identity>(tableId, 'identity')
 export const saveIdentity = (tableId: number, identity: Identity) =>
   write(tableId, 'identity', identity)
+
+export const clearIdentity = (tableId: number) => {
+  try {
+    localStorage.removeItem(key(tableId, 'identity'))
+  } catch {
+    // storage bloccato: niente da cancellare
+  }
+}
+
+/** "Continua come ospite": vale per la sessione del tavolo in cui è stato scelto, non per sempre. */
+export const loadGuest = (tableId: number) => read<GuestChoice>(tableId, 'guest')
+export const saveGuest = (tableId: number, choice: GuestChoice) => write(tableId, 'guest', choice)
 
 export function loadMyPayment(tableId: number, now = Date.now()): MyPayment | null {
   const payment = read<MyPayment>(tableId, 'payment')
