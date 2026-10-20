@@ -87,7 +87,57 @@ export function MenuPicker({ sessionId, onClose }: { sessionId: number; onClose:
       <div className="scroll" style={{ flex: 1, overflow: 'auto', padding: 12 }}>
         <div style={{ display: 'grid', gap: 8, marginBottom: 8 }}>
           <ErrorNote error={add.error ?? menu.error} />
-          <p role="status" style={{ fontSize: 13, color: 'var(--olive-deep)', fontWeight: 600, minHeight: 0 }}>
+          <p role="status" style={{ fontSize: 13, color: 'var(--olive-deep)', fontWeight: 600, minHeight: 20 }}>
+            {added ? `Aggiunto: ${added}` : ''}
+          </p>
+        </div>
+        {menu.isPending && <p style={{ padding: 12, color: 'var(--ink-3)' }}>Caricamento del menu…</p>}
+        {menu.data && shown.length === 0 && (
+          <p style={{ padding: 12, color: 'var(--ink-3)' }}>Nessun piatto disponibile.</p>
+        )}
+        {shown.flatMap((g) => g.items).map((item) => {
+          const quantity = quantities[item.id] ?? 1
+          return (
+            <div
+              key={item.id}
+              style={{ padding: '10px 8px', borderBottom: '1px solid var(--line)', display: 'grid', gap: 8 }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <CategoryDot category={item.category} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14.5, fontWeight: 600 }}>{item.name}</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--ink-3)' }}>{item.category}</div>
+                </div>
+                <Money cents={parseMoney(item.price)} style={{ fontSize: 13.5, color: 'var(--ink-2)' }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 14 }}>
+                <Stepper
+                  value={quantity}
+                  min={1}
+                  max={99}
+                  label={`quantità ${item.name}`}
+                  onChange={(value) => setQuantities((prev) => ({ ...prev, [item.id]: value }))}
+                />
+                <button
+                  type="button"
+                  className="btn"
+                  style={{ padding: '8px 14px', fontSize: 13 }}
+                  aria-label={`Aggiungi alla comanda: ${item.name}`}
+                  disabled={add.isPending}
+                  onClick={() => add.mutate({ item, quantity })}
+                >
+                  <Icon name="plus" size={14} stroke={2.4} /> Aggiungi
+                </button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="scroll" style={{ flex: 1, overflow: 'auto', padding: 12 }}>
+        <div style={{ display: 'grid', gap: 8, marginBottom: 8 }}>
+          <ErrorNote error={add.error ?? menu.error} />
+          <p role="status" style={{ fontSize: 13, color: 'var(--olive-deep)', fontWeight: 600, minHeight: 20 }}>
             {added ? `Aggiunto: ${added}` : ''}
           </p>
         </div>

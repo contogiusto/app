@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import { api, setStaffAuth } from '../api/client'
 import { AuthContext, SESSION_EXPIRED_NOTICE } from './auth'
 import {
@@ -33,11 +41,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // Il client legge sempre il token più recente da qui, senza dipendere dai render.
+  // Sono effetti di layout perché gli effetti dei figli (le prime richieste di una schermata,
+  // es. useQuery) girano prima di quelli del padre: con useEffect, dopo un ricarico della pagina
+  // la prima richiesta partirebbe senza token.
   const tokenRef = useRef<string | null>(null)
-  useEffect(() => {
+  useLayoutEffect(() => {
     tokenRef.current = session?.token ?? null
   }, [session])
-  useEffect(() => {
+  useLayoutEffect(() => {
     setStaffAuth({
       getToken: () => {
         const token = tokenRef.current
