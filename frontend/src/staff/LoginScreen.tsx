@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ApiError, type UserRole } from '../api/client'
 import { Icon } from '../ui/Icon'
 import { Screen } from '../ui/layout'
@@ -111,6 +111,9 @@ export default function LoginScreen() {
           >
             {busy ? 'Accesso…' : 'Entra'} <Icon name="arrow" size={18} />
           </button>
+          <p style={{ marginTop: 22, fontSize: 14, color: 'var(--ink-2)' }}>
+            Sei un cliente? <Link to="/">Accesso clienti</Link>
+          </p>
         </form>
       </main>
     </Screen>
