@@ -1,0 +1,54 @@
+/* Il foglio con il QR è nascosto a schermo e, in stampa, è l'unica cosa che resta. */
+.print-sheet {
+  display: none;
+}
+
+@media print {
+  body > *:not(.print-sheet) {
+    display: none !important;
+  }
+  .print-sheet {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 48px 32px;
+    text-align: center;
+    color: #000;
+    background: #fff;
+  }
+  .print-sheet h1 {
+    font-size: 72px;
+    line-height: 1;
+  }
+  .print-sheet img {
+    width: 12cm;
+    height: 12cm;
+  }
+  .print-sheet p {
+    font-size: 20px;
+  }
+}
+
+.admin-nav a {
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-nav a:hover {
+  background: rgba(34, 28, 21, 0.06);
+}
+.admin-nav a[aria-current='page'] {
+  background: var(--ink);
+  color: var(--paper-2);
+}
+.admin-nav a:focus-visible {
+  outline: 3px solid var(--accent-tint);
+  outline-offset: 2px;
+}

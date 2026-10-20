@@ -1,9 +1,15 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { UserRole } from '../api/client'
 import App from '../App'
 import { fakeJwt } from './testing'
+
+// Le schermate vere del ristoratore hanno i loro test (src/admin): qui conta solo la rotta.
+vi.mock('../admin/AdminApp', async () => {
+  const { StaffLayout } = await import('../staff/StaffLayout')
+  return { default: () => <StaffLayout title="Gestione">{null}</StaffLayout> }
+})
 
 function signIn(role: UserRole) {
   localStorage.setItem('cg:staff', JSON.stringify({ token: fakeJwt(3600), role, username: 'u' }))

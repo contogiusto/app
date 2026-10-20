@@ -6,6 +6,12 @@ import { ApiError, api, type UserRole } from '../api/client'
 import App from '../App'
 import { fakeJwt } from './testing'
 
+// Le schermate vere del ristoratore hanno i loro test (src/admin): qui conta solo la rotta.
+vi.mock('../admin/AdminApp', async () => {
+  const { StaffLayout } = await import('../staff/StaffLayout')
+  return { default: () => <StaffLayout title="Gestione">{null}</StaffLayout> }
+})
+
 const renderAt = (path: string) =>
   render(
     <MemoryRouter initialEntries={[path]}>
