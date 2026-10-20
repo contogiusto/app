@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     # ...e le scritture (modalità, pagamenti) per tavolo.
     rate_limit_public_write_max: int = 30
     rate_limit_public_write_window: int = 600
+    # Registrazione dei clienti: tentativi per IP (riusciti o no), per frenare chi crea account
+    # in massa o prova a scoprire quali email sono già registrate.
+    rate_limit_register_max: int = 10
+    rate_limit_register_window: int = 3600
 
     @field_validator("database_url")
     @classmethod

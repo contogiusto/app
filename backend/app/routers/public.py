@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 
 from app import payments, ratelimit
 from app.config import settings
-from app.deps import DbSession
+from app.deps import DbSession, OptionalCustomer
 from app.errors import Conflict, NotFound
 from app.models import OrderItem, Restaurant, RestaurantTable, SessionStatus, TableSession
 from app.routers.orders import totale_sessione
@@ -148,12 +148,21 @@ def scegli_modalita(table: TavoloScrittura, data: ModeIn, db: DbSession) -> Publ
 
 
 @router.post("/payments", status_code=status.HTTP_201_CREATED)
-def paga(table: TavoloScrittura, data: PaymentIn, db: DbSession) -> PaymentOut:
+def paga(
+    table: TavoloScrittura, data: PaymentIn, db: DbSession, customer: OptionalCustomer
+) -> PaymentOut:
+    """Con un token cliente valido il pagamento finisce nel suo storico; senza (o con un token
+    scaduto o non valido) si paga come ospite: al tavolo un problema di login non blocca nulla."""
     selezione = (
         [(i.order_item_id, i.quantity) for i in data.items] if data.items is not None else None
     )
     payment = payments.crea_pagamento(
-        db, _id_sessione_aperta(db, table), data.method, data.customer_nickname, selezione
+        db,
+        _id_sessione_aperta(db, table),
+        data.method,
+        data.customer_nickname,
+        selezione,
+        customer_id=customer.id if customer else None,
     )
     db.commit()
     return PaymentOut.model_validate(payment)

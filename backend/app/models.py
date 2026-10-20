@@ -66,6 +66,23 @@ class AppUser(Base):
     role: Mapped[UserRole] = mapped_column(_enum(UserRole, "user_role"))
 
 
+class Customer(Base):
+    """Cliente registrato. Tabella separata dallo staff: i due tipi di account non si mescolano."""
+
+    __tablename__ = "customer"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    # Sempre in minuscolo e senza spazi: l'unicità non dipende dalle maiuscole.
+    email: Mapped[str] = mapped_column(String(254), unique=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    first_name: Mapped[str] = mapped_column(String(100))
+    last_name: Mapped[str] = mapped_column(String(100))
+    city: Mapped[str | None] = mapped_column(String(100))
+    # Quando ha accettato l'informativa sulla privacy (obbligatoria per registrarsi).
+    privacy_accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class Restaurant(Base):
     __tablename__ = "restaurant"
 
@@ -125,6 +142,7 @@ class TableSession(Base):
 
     __mapper_args__ = {"version_id_col": version}
 
+    table: Mapped[RestaurantTable] = relationship()
     order_items: Mapped[list["OrderItem"]] = relationship(back_populates="session")
     payments: Mapped[list["Payment"]] = relationship(back_populates="session")
 
@@ -159,6 +177,11 @@ class Payment(Base):
         _enum(PaymentStatus, "payment_status"), default=PaymentStatus.PENDING
     )
     customer_nickname: Mapped[str] = mapped_column(String(80))
+    # Chi ha pagato da loggato; vuoto per gli ospiti. Se l'account viene eliminato il
+    # pagamento resta (serve al ristorante) ma non è più legato a nessuna persona.
+    customer_id: Mapped[int | None] = mapped_column(
+        ForeignKey("customer.id", ondelete="SET NULL"), index=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     session: Mapped[TableSession] = relationship(back_populates="payments")
