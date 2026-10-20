@@ -31,6 +31,14 @@ def engine():
     app_engine.dispose()
 
 
+@pytest.fixture(autouse=True)
+def _contatori_rate_limit_puliti(engine):
+    """I contatori del rate limit sono committati (connessione propria): vanno azzerati."""
+    yield
+    with engine.begin() as conn:
+        conn.execute(text("TRUNCATE rate_limit_counter"))
+
+
 @pytest.fixture
 def db(engine):
     """Sessione isolata: tutto ciò che il test scrive viene annullato a fine test."""

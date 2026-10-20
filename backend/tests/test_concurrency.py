@@ -25,7 +25,8 @@ from app.models import (
 TOKEN = "token-concorrenza"
 H = {"X-Table-Token": TOKEN}
 TABELLE = (
-    "payment_item, payment, order_item, table_session, restaurant_table, menu_item, restaurant"
+    "payment_item, payment, order_item, table_session, restaurant_table, menu_item, restaurant, "
+    "rate_limit_counter"
 )
 
 
@@ -107,3 +108,45 @@ def test_proprio_conto_la_stessa_voce_si_paga_una_volta_sola(dati_committati):
 
     assert sorted(r.status_code for r in risposte).count(201) == 1
     assert all(r.status_code in (201, 409) for r in risposte)
+
+
+def test_rate_limit_richieste_parallele_non_superano_il_limite(engine):
+    from app import ratelimit
+    from app.errors import TooManyRequests
+
+    def _colpo(_i):
+        try:
+            ratelimit.colpisci("concorrenza", limite=5, finestra=3600)
+            return "ok"
+        except TooManyRequests:
+            return "429"
+
+    try:
+        esiti = _in_parallelo(20, _colpo)
+        assert esiti.count("ok") == 5
+        assert esiti.count("429") == 15
+    finally:
+        with engine.begin() as conn:
+            conn.execute(text("TRUNCATE rate_limit_counter"))
+
+
+def test_login_sbagliato_parallelo_non_supera_il_limite(engine, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "rate_limit_login_user_max", 3)
+    monkeypatch.setattr(settings, "rate_limit_login_ip_max", 1000)
+
+    def _login(_i):
+        with TestClient(app) as client:
+            return client.post(
+                "/api/auth/login", json={"username": "ignoto", "password": "x"}
+            ).status_code
+
+    try:
+        esiti = _in_parallelo(12, _login)
+        # Solo tre tentativi ottengono 401 (e quindi una verifica della password): gli altri 429.
+        assert esiti.count(401) == 3
+        assert esiti.count(429) == 9
+    finally:
+        with engine.begin() as conn:
+            conn.execute(text("TRUNCATE rate_limit_counter"))
