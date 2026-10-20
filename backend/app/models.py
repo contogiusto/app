@@ -180,3 +180,15 @@ class PaymentItem(Base):
     quantity: Mapped[int]
 
     payment: Mapped[Payment] = relationship(back_populates="items")
+
+
+class RateLimitCounter(Base):
+    """Contatore del rate limit: una riga per (chiave, finestra). Vedi app/ratelimit.py."""
+
+    __tablename__ = "rate_limit_counter"
+    __table_args__ = (Index("ix_rate_limit_counter_expires_at", "expires_at"),)
+
+    key: Mapped[str] = mapped_column(String(100), primary_key=True)
+    window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    count: Mapped[int]
