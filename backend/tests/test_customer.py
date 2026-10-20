@@ -216,9 +216,38 @@ def test_elimina_account_cancella_i_dati_e_rende_anonimi_i_pagamenti(client, db,
     assert r.status_code == 204
     assert db.get(Customer, cliente.id) is None
     db.refresh(pagamento)
-    # Il pagamento resta (serve al ristorante) ma non è più legato a nessuna persona.
+    # Il pagamento resta (serve al ristorante) ma non è più legato a nessuna persona...
     assert pagamento.customer_id is None
+    # ...e nemmeno il suo nome (digitato al tavolo, di solito nome e cognome) resta sul conto.
+    assert pagamento.customer_nickname == "Cliente eliminato"
     assert client.get("/api/customer/me", headers=header).status_code == 401
+
+
+def test_elimina_account_non_tocca_i_pagamenti_degli_altri(client, db, customer_header):
+    header, anna = customer_header(email="anna@example.com", password="una-password-buona")
+    luca = Customer(
+        email="luca@example.com", password_hash="x", first_name="Luca", last_name="Bianchi"
+    )
+    db.add(luca)
+    db.flush()
+    sessione = _sessione(db)
+    di_anna = _pagamento(db, sessione, anna)
+    di_luca = _pagamento(db, sessione, luca)
+    di_ospite = _pagamento(db, sessione, None)
+    for p, nome in ((di_luca, "Luca Bianchi"), (di_ospite, "Marco Verdi")):
+        p.customer_nickname = nome
+    db.flush()
+
+    r = client.request(
+        "DELETE", "/api/customer/me", json={"password": "una-password-buona"}, headers=header
+    )
+    assert r.status_code == 204
+    db.refresh(di_anna)
+    db.refresh(di_luca)
+    db.refresh(di_ospite)
+    assert di_anna.customer_nickname == "Cliente eliminato"
+    assert (di_luca.customer_nickname, di_luca.customer_id) == ("Luca Bianchi", luca.id)
+    assert (di_ospite.customer_nickname, di_ospite.customer_id) == ("Marco Verdi", None)
 
 
 # --- storico dei pagamenti -------------------------------------------------------------------

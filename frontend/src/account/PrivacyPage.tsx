@@ -67,8 +67,9 @@ export default function PrivacyPage({ config = PRIVACY_CONFIG }: { config?: Priv
         <p>
           Finché il tuo account esiste. Quando lo elimini dal profilo, cancelliamo email, nome,
           cognome, città e l’accesso. I pagamenti già effettuati restano perché servono al
-          ristorante per i suoi conti, ma non sono più collegati a te. Il nome indicato al tavolo
-          resta associato al singolo pagamento.
+          ristorante per i suoi conti, ma non sono più collegati a te, e il nome che avevi indicato
+          al tavolo su quei pagamenti viene sostituito con «Cliente eliminato». I pagamenti fatti
+          da ospite, senza account, non sono collegati a nessun account e restano com’erano.
         </p>
 
         <h2>I tuoi diritti</h2>
