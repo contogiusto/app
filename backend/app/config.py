@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     # Invio email (Resend). Senza, il link di recupero password finisce solo nel log.
     resend_api_key: str = ""
     email_from: str = ""
+    # Senza Resend il testo delle email (con il link segreto) si scrive nel log solo in sviluppo:
+    # su Vercel il log è condiviso e il link varrebbe come accesso all'account.
+    email_log_links: bool = Field(default_factory=lambda: not os.environ.get("VERCEL"))
     # Validità del link di recupero password.
     password_reset_ttl_minutes: int = 60
 

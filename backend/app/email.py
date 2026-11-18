@@ -20,9 +20,12 @@ TIMEOUT_SECONDS = 10
 
 def send_email(to: str, subject: str, text: str) -> None:
     if not settings.resend_api_key or not settings.email_from:
-        # Il testo contiene un link segreto: fuori dallo sviluppo non va in un log condiviso,
-        # ma senza chiave non c'è altro modo di leggerlo (nessun servizio configurato).
-        logger.info("Email non inviata (Resend non configurato) a %s: %s\n%s", to, subject, text)
+        if settings.email_log_links:  # sviluppo: il link si legge qui
+            logger.info(
+                "Email non inviata (Resend non configurato) a %s: %s\n%s", to, subject, text
+            )
+        else:  # produzione: il testo ha un link segreto, nessun dato nel log
+            logger.error("Email non inviata: Resend non configurato (RESEND_API_KEY/EMAIL_FROM)")
         return
     try:
         response = httpx.post(

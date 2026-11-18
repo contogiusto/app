@@ -24,7 +24,10 @@ export default function ResetPasswordPage() {
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
-    if (location.hash) window.history.replaceState(null, '', location.pathname + location.search)
+    // Si conserva lo stato del router (chiave e posizione): così il tasto Indietro non si rompe.
+    if (location.hash) {
+      window.history.replaceState(window.history.state, '', location.pathname + location.search)
+    }
   }, [location.hash, location.pathname, location.search])
 
   async function submit(event: FormEvent) {
@@ -52,7 +55,6 @@ export default function ResetPasswordPage() {
   return (
     <div className="app-bg acc" style={{ height: '100%', overflow: 'auto' }}>
       <main style={{ maxWidth: 420, margin: '0 auto', padding: '40px 22px 32px' }}>
-        <meta name="referrer" content="no-referrer" />
         <Logo size={44} />
         <h1 className="display" style={{ fontSize: 28, lineHeight: 1.15, margin: '22px 0 12px' }}>
           Scegli una nuova password

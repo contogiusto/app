@@ -78,8 +78,9 @@ export default function PrivacyPage({ config = PRIVACY_CONFIG }: { config?: Priv
         <h2>Per quanto tempo li conserviamo</h2>
         <p>
           Finché il tuo account esiste. Quando lo elimini dal profilo, cancelliamo email, nome,
-          cognome, città, l’accesso e gli eventuali link di recupero password. I link scaduti si
-          cancellano da soli entro pochi giorni. I pagamenti già effettuati restano perché servono al
+          cognome, città, l’accesso e gli eventuali link di recupero password. I link scaduti non
+          sono più utilizzabili e il sistema li ripulisce; di ciascuno resta comunque solo un codice
+          non leggibile. I pagamenti già effettuati restano perché servono al
           ristorante per i suoi conti, ma non sono più collegati a te, e il nome che avevi indicato
           al tavolo su quei pagamenti viene sostituito con «Cliente eliminato». I pagamenti fatti
           da ospite, senza account, non sono collegati a nessun account e restano com’erano.

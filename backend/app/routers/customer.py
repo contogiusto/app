@@ -160,9 +160,9 @@ def richiedi_reset(
         )
     )
     customer = db.scalar(select(Customer).where(Customer.email == data.email))
+    token = secrets.token_urlsafe(32)
+    ttl = settings.password_reset_ttl_minutes
     if customer is not None:
-        token = secrets.token_urlsafe(32)
-        ttl = settings.password_reset_ttl_minutes
         db.add(
             PasswordResetToken(
                 customer_id=customer.id,
@@ -170,7 +170,9 @@ def richiedi_reset(
                 expires_at=datetime.now(UTC) + timedelta(minutes=ttl),
             )
         )
-        db.commit()
+    # Un solo commit in entrambi i casi: per email registrate o no il lavoro è quasi lo stesso.
+    db.commit()
+    if customer is not None:
         # Il token sta nel frammento (#): il browser non lo manda al server né nel Referer.
         link = f"{settings.frontend_url}/reset-password#token={token}"
         testo = (
@@ -189,14 +191,24 @@ def conferma_reset(data: PasswordResetConfirmIn, request: Request, db: DbSession
     massimo, finestra = settings.rate_limit_reset_fail_max, settings.rate_limit_reset_window
     ratelimit.verifica(chiave, massimo, finestra)
     ora = datetime.now(UTC)
-    record = db.scalar(
-        select(PasswordResetToken).where(PasswordResetToken.token_hash == _hash_token(data.token))
+    # Il link si "prende" con un solo UPDATE atomico: due conferme insieme con lo stesso link non
+    # passano entrambe (la seconda non trova più una riga libera).
+    customer_id = db.scalar(
+        update(PasswordResetToken)
+        .where(
+            PasswordResetToken.token_hash == _hash_token(data.token),
+            PasswordResetToken.used_at.is_(None),
+            PasswordResetToken.expires_at > ora,
+        )
+        .values(used_at=ora)
+        .returning(PasswordResetToken.customer_id)
     )
     # Stesso errore per link sconosciuto, già usato o scaduto: nessun indizio per chi indovina.
-    if record is None or record.used_at is not None or record.expires_at <= ora:
+    if customer_id is None:
+        db.rollback()
         ratelimit.colpisci(chiave, massimo, finestra)
         raise HTTPException(status.HTTP_400_BAD_REQUEST, _LINK_NON_VALIDO)
-    customer = db.get(Customer, record.customer_id)
+    customer = db.get(Customer, customer_id)
     customer.password_hash = hash_password(data.password)
     customer.password_changed_at = ora  # i suoi token di accesso attuali non valgono più
     # Chiude questo link e tutti gli altri ancora aperti dello stesso cliente.

@@ -95,6 +95,16 @@ describe('nuova password dal link', () => {
     )
   })
 
+  it('toglie il token dalla barra degli indirizzi conservando lo stato del router', async () => {
+    const replace = vi.spyOn(window.history, 'replaceState')
+    renderApp('/reset-password#token=tok_valido_1234567890')
+    await screen.findByLabelText('Nuova password')
+    await waitFor(() => expect(replace).toHaveBeenCalled())
+    const [, , url] = replace.mock.calls[0]
+    expect(String(url)).not.toContain('token')
+    expect(String(url)).not.toContain('#')
+  })
+
   it('senza token nel link non mostra il modulo', async () => {
     renderApp('/reset-password')
     expect(await screen.findByRole('alert')).toHaveTextContent('non è completo')
@@ -116,6 +126,9 @@ describe('cambio password dal profilo', () => {
     await user.click(screen.getByRole('button', { name: 'Cambia password' }))
     expect(await screen.findByText('Password cambiata.')).toBeInTheDocument()
     expect(change).toHaveBeenCalledWith('una-password-buona', NUOVA)
+    // La sessione ricordata ora usa il token nuovo (il server ha revocato quello vecchio).
+    const saved = JSON.parse(localStorage.getItem('cg:account') ?? '{}') as { token?: string }
+    expect(saved.token).toBe(change.mock.results[0] && (await change.mock.results[0].value).access_token)
   })
 
   it('mostra l’errore della password attuale sbagliata', async () => {

@@ -78,7 +78,9 @@ def test_il_token_in_chiaro_non_e_nel_db(client, db, make_customer, posta):
     assert token not in salvato.token_hash and len(salvato.token_hash) == 64
 
 
-def test_la_richiesta_e_limitata_per_email(client, make_customer, posta):
+def test_la_richiesta_e_limitata_per_email(client, make_customer, posta, monkeypatch):
+    # Il limite per IP qui non deve intervenire: si prova solo quello per email.
+    monkeypatch.setattr(settings, "rate_limit_reset_ip_max", 1000)
     make_customer("anna@example.com")
     for _ in range(settings.rate_limit_reset_email_max):
         assert _chiedi(client, "anna@example.com").status_code == 202
@@ -346,15 +348,29 @@ def test_storico_filtrato_per_ristorante(client, db, customer_header, due_locali
 # ---------- invio email ----------
 
 
-def test_senza_chiave_il_link_va_nel_log_e_non_parte_nulla(caplog, monkeypatch):
+def test_senza_chiave_in_sviluppo_il_link_va_nel_log_e_non_parte_nulla(caplog, monkeypatch):
     monkeypatch.setattr(settings, "resend_api_key", "")
     monkeypatch.setattr(settings, "email_from", "")
+    monkeypatch.setattr(settings, "email_log_links", True)
     called = []
     monkeypatch.setattr(email_module.httpx, "post", lambda *a, **k: called.append(1))
     with caplog.at_level("INFO"):
         email_module.send_email("anna@example.com", "Oggetto", "Testo con link")
     assert not called
     assert "Testo con link" in caplog.text
+
+
+def test_senza_chiave_in_produzione_nessun_dato_nel_log(caplog, monkeypatch):
+    monkeypatch.setattr(settings, "resend_api_key", "")
+    monkeypatch.setattr(settings, "email_from", "")
+    monkeypatch.setattr(settings, "email_log_links", False)
+    called = []
+    monkeypatch.setattr(email_module.httpx, "post", lambda *a, **k: called.append(1))
+    with caplog.at_level("INFO"):
+        email_module.send_email("anna@example.com", "Oggetto", "Testo con link segreto")
+    assert not called
+    assert "link segreto" not in caplog.text and "anna@example.com" not in caplog.text
+    assert "Resend non configurato" in caplog.text
 
 
 def test_con_la_chiave_chiama_resend(monkeypatch):
