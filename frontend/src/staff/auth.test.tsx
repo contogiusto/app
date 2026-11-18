@@ -62,15 +62,54 @@ describe('AuthProvider', () => {
 
   it('il login salva token, ruolo e utente (anche nello storage)', async () => {
     const token = fakeJwt(3600)
-    vi.spyOn(api, 'login').mockResolvedValue({ access_token: token, token_type: 'bearer', role: 'ADMIN' })
+    vi.spyOn(api, 'login').mockResolvedValue({
+      access_token: token,
+      token_type: 'bearer',
+      role: 'ADMIN',
+      must_change_password: false,
+    })
     const { result } = renderHook(useAuth, { wrapper })
     expect(result.current.session).toBeNull()
 
     await act(() => result.current.login('  mario ', 'segreta'))
 
     expect(api.login).toHaveBeenCalledWith('mario', 'segreta')
-    expect(result.current.session).toEqual({ token, role: 'ADMIN', username: 'mario' })
-    expect(loadStaffSession()).toEqual({ token, role: 'ADMIN', username: 'mario' })
+    const expected = { token, role: 'ADMIN', username: 'mario', restaurant: null, mustChangePassword: false }
+    expect(result.current.session).toEqual(expected)
+    expect(loadStaffSession()).toEqual(expected)
+  })
+
+  it('con lo slug accede al ristorante e ricorda la password provvisoria', async () => {
+    const token = fakeJwt(3600)
+    vi.spyOn(api, 'login').mockResolvedValue({
+      access_token: token,
+      token_type: 'bearer',
+      role: 'WAITER',
+      must_change_password: true,
+      restaurant_slug: 'da-gino',
+    })
+    const { result } = renderHook(useAuth, { wrapper })
+    await act(() => result.current.login('anna', 'x', 'da-gino'))
+    expect(api.login).toHaveBeenCalledWith('anna', 'x', 'da-gino')
+    expect(result.current.session).toMatchObject({ restaurant: 'da-gino', mustChangePassword: true })
+  })
+
+  it('cambiando la password l’obbligo sparisce, anche nello storage', async () => {
+    const token = fakeJwt(3600)
+    vi.spyOn(api, 'login').mockResolvedValue({
+      access_token: token,
+      token_type: 'bearer',
+      role: 'WAITER',
+      must_change_password: true,
+      restaurant_slug: 'da-gino',
+    })
+    vi.spyOn(api, 'changePassword').mockResolvedValue(undefined)
+    const { result } = renderHook(useAuth, { wrapper })
+    await act(() => result.current.login('anna', 'x', 'da-gino'))
+    await act(() => result.current.changePassword('x', 'una-nuova-password-1'))
+    expect(api.changePassword).toHaveBeenCalledWith('x', 'una-nuova-password-1')
+    expect(result.current.session?.mustChangePassword).toBe(false)
+    expect(loadStaffSession()?.mustChangePassword).toBe(false)
   })
 
   it('credenziali errate: l’errore passa al chiamante e non si resta collegati', async () => {
@@ -86,6 +125,7 @@ describe('AuthProvider', () => {
       access_token: fakeJwt(3600),
       token_type: 'bearer',
       role: 'WAITER',
+      must_change_password: false,
     })
     const { result } = renderHook(useAuth, { wrapper })
     await act(() => result.current.login('anna', 'x'))

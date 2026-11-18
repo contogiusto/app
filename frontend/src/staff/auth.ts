@@ -8,7 +8,9 @@ export type AuthContextValue = {
   session: StaffSession | null
   /** Perché si è tornati al login (es. sessione scaduta); sparisce al prossimo login. */
   notice: string | null
-  login: (username: string, password: string) => Promise<StaffSession>
+  login: (username: string, password: string, restaurant?: string) => Promise<StaffSession>
+  /** Cambia la propria password; a buon fine toglie l'obbligo di cambiarla. */
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   logout: (notice?: string) => void
 }
 
@@ -20,6 +22,12 @@ export function useAuth(): AuthContextValue {
   return value
 }
 
-/** Dove porta il login per ciascun ruolo. */
-export const homeFor = (role: UserRole) =>
-  role === 'SUPERADMIN' ? '/piattaforma' : role === 'ADMIN' ? '/admin' : '/waiter'
+/** Dove porta il login per ciascun ruolo (con il ristorante, se lo staff ne ha uno). */
+export const homeFor = (role: UserRole, restaurant?: string | null) => {
+  if (role === 'SUPERADMIN') return '/piattaforma'
+  const base = restaurant ? `/ristorante/${restaurant}` : ''
+  return `${base}${role === 'ADMIN' ? '/admin' : '/waiter'}`
+}
+
+/** La pagina dove si cambia la password provvisoria. */
+export const CHANGE_PASSWORD_PATH = '/cambio-password'

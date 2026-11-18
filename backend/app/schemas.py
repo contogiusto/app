@@ -28,6 +28,10 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     role: UserRole
+    # Password provvisoria: finché non la cambia l'utente può solo usare il cambio password.
+    must_change_password: bool = False
+    # Ristorante dello staff (None per l'admin centrale).
+    restaurant_slug: str | None = None
 
 
 class UserOut(BaseModel):
@@ -36,6 +40,13 @@ class UserOut(BaseModel):
     id: int
     username: str
     role: UserRole
+    must_change_password: bool = False
+    restaurant_slug: str | None = None
+
+
+class ChangePasswordIn(BaseModel):
+    current_password: str
+    new_password: Annotated[str, Field(min_length=12, max_length=128)]
 
 
 class MenuItemIn(BaseModel):
@@ -294,6 +305,8 @@ class PublicRestaurantOut(BaseModel):
 
 class PublicTableOut(BaseModel):
     restaurant_name: str
+    # Indirizzo del ristorante: la pagina del tavolo lo usa per portare al locale giusto.
+    restaurant_slug: str | None = None
     table_number: int
     session: PublicSessionOut | None
 

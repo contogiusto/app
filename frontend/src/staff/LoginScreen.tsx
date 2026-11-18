@@ -1,21 +1,25 @@
 import { useState, type FormEvent } from 'react'
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ApiError, type UserRole } from '../api/client'
 import { Icon } from '../ui/Icon'
 import { Logo } from '../ui/Logo'
 import { Screen } from '../ui/layout'
-import { homeFor, useAuth } from './auth'
+import { CHANGE_PASSWORD_PATH, homeFor, useAuth } from './auth'
 
-/** Il ritorno alla pagina richiesta vale solo se il ruolo può entrarci. */
-function allowed(path: unknown, role: UserRole): path is string {
+/** Il ritorno alla pagina richiesta vale solo se il ruolo può entrarci (e resta nel suo ristorante). */
+function allowed(path: unknown, role: UserRole, restaurant?: string | null): path is string {
   if (typeof path !== 'string') return false
   if (path.startsWith('/piattaforma')) return role === 'SUPERADMIN'
-  if (path.startsWith('/admin')) return role === 'ADMIN'
-  return path.startsWith('/waiter') && role !== 'SUPERADMIN'
+  const scoped = /^\/ristorante\/([^/]+)(\/.*)?$/.exec(path)
+  if (scoped && scoped[1] !== restaurant) return false
+  const rest = scoped ? (scoped[2] ?? '') : path
+  if (rest.startsWith('/admin')) return role === 'ADMIN'
+  return rest.startsWith('/waiter') && role !== 'SUPERADMIN'
 }
 
 export default function LoginScreen() {
   const { session, notice, login } = useAuth()
+  const { slug } = useParams()
   const navigate = useNavigate()
   const from = (useLocation().state as { from?: unknown } | null)?.from
   const [username, setUsername] = useState('')
@@ -25,7 +29,11 @@ export default function LoginScreen() {
 
   // Già collegato (es. ricarica della pagina): niente form.
   if (session && !busy) {
-    return <Navigate to={allowed(from, session.role) ? from : homeFor(session.role)} replace />
+    if (session.mustChangePassword) return <Navigate to={CHANGE_PASSWORD_PATH} replace />
+    const target = allowed(from, session.role, session.restaurant)
+      ? from
+      : homeFor(session.role, session.restaurant)
+    return <Navigate to={target} replace />
   }
 
   async function submit(event: FormEvent) {
@@ -34,8 +42,13 @@ export default function LoginScreen() {
     setBusy(true)
     setError(null)
     try {
-      const next = await login(username, password)
-      navigate(allowed(from, next.role) ? from : homeFor(next.role), { replace: true })
+      const next = await login(username, password, slug)
+      const target = next.mustChangePassword
+        ? CHANGE_PASSWORD_PATH
+        : allowed(from, next.role, next.restaurant)
+          ? from
+          : homeFor(next.role, next.restaurant)
+      navigate(target, { replace: true })
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Qualcosa è andato storto: riprova')
       setBusy(false)
@@ -115,7 +128,7 @@ export default function LoginScreen() {
             {busy ? 'Accesso…' : 'Entra'} <Icon name="arrow" size={18} />
           </button>
           <p style={{ marginTop: 22, fontSize: 14, color: 'var(--text-2)' }}>
-            Sei un cliente? <Link to="/">Accesso clienti</Link>
+            Sei un cliente? <Link to={slug ? `/ristorante/${slug}` : '/'}>Accesso clienti</Link>
           </p>
         </form>
       </main>

@@ -63,16 +63,24 @@ function Home() {
   return <p data-testid="home">{pathname + search}</p>
 }
 
+/** L'indirizzo corrente, per verificare i reindirizzamenti. */
+function Where() {
+  const { pathname, search } = useLocation()
+  return <output data-testid="where">{pathname + search}</output>
+}
+
 function renderAt(path = '/table/5?token=tok') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={client}>
       <AccountProvider>
         <MemoryRouter initialEntries={[path]}>
+          <Where />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/customer/history" element={<p>Pagina storico</p>} />
             <Route path="/table/:tableId" element={<CustomerApp />} />
+            <Route path="/ristorante/:slug/tavolo/:tableId" element={<CustomerApp />} />
           </Routes>
         </MemoryRouter>
       </AccountProvider>
@@ -94,6 +102,33 @@ async function enterAs(user: ReturnType<typeof userEvent.setup>, first = 'Anna',
 beforeEach(() => {
   localStorage.clear()
   Object.values(mocks).forEach((m) => m.mockReset())
+})
+
+describe('indirizzo del ristorante', () => {
+  it('un QR vecchio porta al tavolo dentro il suo ristorante', async () => {
+    mocks.view.mockResolvedValue({ ...view(session()), restaurant_slug: 'da-gino' })
+    renderAt('/table/5?token=tok')
+    await waitFor(() =>
+      expect(screen.getByTestId('where')).toHaveTextContent('/ristorante/da-gino/tavolo/5?token=tok'),
+    )
+    expect(await screen.findByRole('button', { name: 'Continua come ospite' })).toBeInTheDocument()
+  })
+
+  it('uno slug sbagliato nell’indirizzo non mostra i dati di un altro locale: si va a quello giusto', async () => {
+    mocks.view.mockResolvedValue({ ...view(session()), restaurant_slug: 'da-gino' })
+    renderAt('/ristorante/da-lia/tavolo/5?token=tok')
+    await waitFor(() =>
+      expect(screen.getByTestId('where')).toHaveTextContent('/ristorante/da-gino/tavolo/5?token=tok'),
+    )
+    expect(await screen.findByRole('button', { name: 'Continua come ospite' })).toBeInTheDocument()
+  })
+
+  it('con lo slug giusto resta dov’è', async () => {
+    mocks.view.mockResolvedValue({ ...view(session()), restaurant_slug: 'da-gino' })
+    renderAt('/ristorante/da-gino/tavolo/5?token=tok')
+    expect(await screen.findByRole('button', { name: 'Continua come ospite' })).toBeInTheDocument()
+    expect(screen.getByTestId('where')).toHaveTextContent('/ristorante/da-gino/tavolo/5?token=tok')
+  })
 })
 
 describe('accesso al tavolo', () => {

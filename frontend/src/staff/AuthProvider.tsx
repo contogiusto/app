@@ -22,14 +22,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setNotice(reason ?? null)
   }, [])
 
-  const login = useCallback(async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string, restaurant?: string) => {
     const name = username.trim()
-    const result = await api.login(name, password)
-    const next: StaffSession = { token: result.access_token, role: result.role, username: name }
+    const result = restaurant
+      ? await api.login(name, password, restaurant)
+      : await api.login(name, password)
+    const next: StaffSession = {
+      token: result.access_token,
+      role: result.role,
+      username: name,
+      restaurant: result.restaurant_slug ?? null,
+      mustChangePassword: result.must_change_password,
+    }
     saveStaffSession(next)
     setSession(next)
     setNotice(null)
     return next
+  }, [])
+
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    await api.changePassword(currentPassword, newPassword)
+    setSession((current) => {
+      if (current === null) return current
+      const next = { ...current, mustChangePassword: false }
+      saveStaffSession(next)
+      return next
+    })
   }, [])
 
   // Il client legge sempre il token più recente da qui, senza dipendere dai render. Si imposta in
@@ -62,8 +80,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session, logout])
 
   const value = useMemo(
-    () => ({ session, notice, login, logout }),
-    [session, notice, login, logout],
+    () => ({ session, notice, login, changePassword, logout }),
+    [session, notice, login, changePassword, logout],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

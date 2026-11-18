@@ -88,4 +88,16 @@ def test_qr_svg_negato_a_cameriere_e_anonimi(client, tavolo, auth_header):
 
 
 def test_url_del_qr_punta_alla_pagina_cliente(tavolo):
-    assert qr_url(tavolo) == f"{settings.frontend_url}/table/{tavolo.id}?token=token-iniziale"
+    assert qr_url(tavolo, None) == f"{settings.frontend_url}/table/{tavolo.id}?token=token-iniziale"
+
+
+def test_il_qr_punta_alla_pagina_del_ristorante(db, ristorante, tavolo):
+    ristorante.slug = "da-gino"
+    db.flush()
+    atteso = f"{settings.frontend_url}/ristorante/da-gino/tavolo/{tavolo.id}?token=token-iniziale"
+    assert qr_url(tavolo, ristorante.slug) == atteso
+
+
+def test_il_qr_di_un_ristorante_senza_slug_usa_il_vecchio_indirizzo(tavolo):
+    atteso = f"{settings.frontend_url}/table/{tavolo.id}?token=token-iniziale"
+    assert qr_url(tavolo, None) == atteso

@@ -28,6 +28,7 @@ export type CustomerAuth = Schemas['CustomerAuthOut']
 export type CustomerRegister = Schemas['CustomerRegisterIn']
 export type CustomerUpdate = Schemas['CustomerUpdateIn']
 export type CustomerPayment = Schemas['CustomerPaymentOut']
+export type PublicRestaurant = Schemas['PublicRestaurantOut']
 export type Restaurant = Schemas['RestaurantOut']
 export type RestaurantIn = Schemas['RestaurantIn']
 export type RestaurantPatch = Schemas['RestaurantPatch']
@@ -157,8 +158,23 @@ const bearer = (token: string) => ({ Authorization: `Bearer ${token}` })
 const tableToken = (token: string) => ({ 'X-Table-Token': token })
 
 export const api = {
-  login: (username: string, password: string) =>
-    request<TokenResponse>('/api/auth/login', { method: 'POST', body: { username, password } }),
+  /** `restaurant` è lo slug del ristorante dello staff; senza, accede l'admin centrale. */
+  login: (username: string, password: string, restaurant?: string) =>
+    request<TokenResponse>('/api/auth/login', {
+      method: 'POST',
+      body: restaurant ? { username, password, restaurant } : { username, password },
+    }),
+
+  /** Cambio della propria password (chiede quella attuale). */
+  changePassword: (currentPassword: string, newPassword: string) =>
+    authed<void>('/api/auth/change-password', {
+      method: 'POST',
+      body: { current_password: currentPassword, new_password: newPassword },
+    }),
+
+  /** Pagina pubblica di un ristorante (nome); 404 se non esiste o è disattivato. */
+  restaurant: (slug: string) =>
+    request<PublicRestaurant>(`/api/public/restaurants/${encodeURIComponent(slug)}`),
 
   me: (token: string) => request<UserOut>('/api/auth/me', { headers: bearer(token) }),
 
@@ -220,6 +236,17 @@ export const api = {
     },
 
     /** Il menu pubblico (solo piatti disponibili) è `api.menu()`; qui quello completo. */
+    /** Utenti del proprio ristorante (solo ADMIN). */
+    users: {
+      list: () => authed<StaffUser[]>('/api/users'),
+      create: (data: StaffUserIn) => authed<StaffUser>('/api/users', { method: 'POST', body: data }),
+      update: (userId: number, data: StaffUserPatch) =>
+        authed<StaffUser>(`/api/users/${userId}`, { method: 'PATCH', body: data }),
+      resetPassword: (userId: number, password: string) =>
+        authed<void>(`/api/users/${userId}/reset-password`, { method: 'POST', body: { password } }),
+      remove: (userId: number) => authed<void>(`/api/users/${userId}`, { method: 'DELETE' }),
+    },
+
     /** Admin centrale (SUPERADMIN): ristoranti e utenti dei ristoranti. */
     platform: {
       restaurants: () => authed<Restaurant[]>('/api/platform/restaurants'),

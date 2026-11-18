@@ -51,6 +51,7 @@ function renderAt(path: string) {
     session: { token: 't', role: 'SUPERADMIN' as const, username: 'capo' },
     notice: null,
     login: vi.fn(),
+    changePassword: vi.fn(),
     logout: vi.fn(),
   }
   return render(

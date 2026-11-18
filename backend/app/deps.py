@@ -90,6 +90,11 @@ def require_roles(*roles: UserRole):
     def checker(user: CurrentUser) -> AppUser:
         if user.role not in roles:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Permessi insufficienti")
+        if user.must_change_password:
+            # Password provvisoria: prima si cambia (solo /api/auth/me e /change-password restano).
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN, "Devi cambiare la password prima di continuare"
+            )
         return user
 
     return checker

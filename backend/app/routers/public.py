@@ -115,10 +115,14 @@ def _sessione_aperta(db: Session, table: RestaurantTable) -> TableSession | None
 
 def _vista(db: Session, table: RestaurantTable) -> PublicTableOut:
     session = _sessione_aperta(db, table)
-    restaurant_name = db.get(Restaurant, table.restaurant_id).name
+    restaurant = db.get(Restaurant, table.restaurant_id)
+    restaurant_name = restaurant.name
     if session is None:
         return PublicTableOut(
-            restaurant_name=restaurant_name, table_number=table.number, session=None
+            restaurant_name=restaurant_name,
+            restaurant_slug=restaurant.slug,
+            table_number=table.number,
+            session=None,
         )
 
     righe = db.scalars(
@@ -128,6 +132,7 @@ def _vista(db: Session, table: RestaurantTable) -> PublicTableOut:
     pagamenti, pagato, residuo = payments.riepilogo(db, session.id)
     return PublicTableOut(
         restaurant_name=restaurant_name,
+        restaurant_slug=restaurant.slug,
         table_number=table.number,
         session=PublicSessionOut(
             id=session.id,
