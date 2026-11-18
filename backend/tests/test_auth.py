@@ -10,7 +10,10 @@ from app.security import create_access_token
 
 def test_login_corretto_restituisce_token_e_ruolo(client, make_user):
     make_user("mario", UserRole.WAITER, "segreta")
-    r = client.post("/api/auth/login", json={"username": "mario", "password": "segreta"})
+    r = client.post(
+        "/api/auth/login",
+        json={"username": "mario", "password": "segreta", "restaurant": "ristorante-di-test"},
+    )
     assert r.status_code == 200
     body = r.json()
     assert body["token_type"] == "bearer"
@@ -22,7 +25,10 @@ def test_login_corretto_restituisce_token_e_ruolo(client, make_user):
 @pytest.mark.parametrize("username,password", [("mario", "sbagliata"), ("inesistente", "segreta")])
 def test_login_rifiutato_con_stesso_errore(client, make_user, username, password):
     make_user("mario", UserRole.WAITER, "segreta")
-    r = client.post("/api/auth/login", json={"username": username, "password": password})
+    r = client.post(
+        "/api/auth/login",
+        json={"username": username, "password": password, "restaurant": "ristorante-di-test"},
+    )
     assert r.status_code == 401
     assert r.json()["detail"] == "Credenziali non valide"
 

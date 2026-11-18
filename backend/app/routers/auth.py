@@ -19,36 +19,20 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 def _trova_utente(db: Session, username: str, slug: str | None) -> AppUser | None:
     """L'utente che sta accedendo, o None (anche se utente o ristorante sono disattivati).
 
-    Con `slug` solo lo staff di quel ristorante; senza, l'admin centrale. Finché il frontend non
-    invia lo slug (fase 3c) senza slug si accetta anche uno staff con username univoco: va tolto
-    nella fase 3d.
+    Con `slug` solo lo staff di quel ristorante; senza, solo l'admin centrale.
     """
     if slug is not None:
-        candidati = list(
-            db.scalars(
-                select(AppUser)
-                .join(Restaurant, Restaurant.id == AppUser.restaurant_id)
-                .where(Restaurant.slug == slug, AppUser.username == username)
-            )
+        query = (
+            select(AppUser)
+            .join(Restaurant, Restaurant.id == AppUser.restaurant_id)
+            .where(Restaurant.slug == slug, AppUser.username == username)
         )
     else:
-        candidati = list(
-            db.scalars(
-                select(AppUser).where(
-                    AppUser.username == username, AppUser.role == UserRole.SUPERADMIN
-                )
-            )
-        ) or list(
-            db.scalars(
-                select(AppUser).where(
-                    AppUser.username == username, AppUser.restaurant_id.is_not(None)
-                )
-            )
+        query = select(AppUser).where(
+            AppUser.username == username, AppUser.role == UserRole.SUPERADMIN
         )
-    if len(candidati) != 1:
-        return None
-    user = candidati[0]
-    if not user.active:
+    user = db.scalar(query)
+    if user is None or not user.active:
         return None
     if user.restaurant_id is not None and not db.get(Restaurant, user.restaurant_id).active:
         return None

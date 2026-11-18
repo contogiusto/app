@@ -1,6 +1,7 @@
 """Modello dati del dominio (vedi docs/domain.md)."""
 
 import enum
+import secrets
 from datetime import datetime
 from decimal import Decimal
 
@@ -21,6 +22,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
+from app.slugs import slugify
 
 
 class UserRole(enum.StrEnum):
@@ -105,13 +107,19 @@ class Customer(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+def _slug_iniziale(context) -> str:
+    nome = context.get_current_parameters()["name"]
+    return f"{slugify(nome)[:32].strip('-')}-{secrets.token_hex(3)}"
+
+
 class Restaurant(Base):
     __tablename__ = "restaurant"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(120))
-    # Indirizzo del locale (/ristorante/<slug>). Nullable solo durante la transizione (fase 3d).
-    slug: Mapped[str | None] = mapped_column(String(40), unique=True)
+    # Indirizzo del locale (/ristorante/<slug>). Si sceglie alla creazione; se il codice ne crea
+    # uno senza, si deriva dal nome con un suffisso casuale (mai vuoto).
+    slug: Mapped[str] = mapped_column(String(40), unique=True, default=_slug_iniziale)
     active: Mapped[bool] = mapped_column(default=True, server_default=true())
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

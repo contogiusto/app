@@ -255,9 +255,8 @@ def test_la_lettura_non_consuma_il_limite_di_scrittura(client, tavolo_con_conto,
 
 def _login(client, username, password="sbagliata", ip=None):
     headers = {"x-real-ip": ip} if ip else {}
-    return client.post(
-        "/api/auth/login", json={"username": username, "password": password}, headers=headers
-    )
+    body = {"username": username, "password": password, "restaurant": "ristorante-di-test"}
+    return client.post("/api/auth/login", json=body, headers=headers)
 
 
 def test_login_sbagliato_per_username_oltre_il_limite_429(client, make_user, orologio, limiti):

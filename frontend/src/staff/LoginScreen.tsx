@@ -22,6 +22,7 @@ export default function LoginScreen() {
   const { slug } = useParams()
   const navigate = useNavigate()
   const from = (useLocation().state as { from?: unknown } | null)?.from
+  const [restaurant, setRestaurant] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -42,7 +43,9 @@ export default function LoginScreen() {
     setBusy(true)
     setError(null)
     try {
-      const next = await login(username, password, slug)
+      // Dal link del ristorante lo slug è nell'indirizzo; dal login generico lo scrive chi accede
+      // (vuoto = admin centrale).
+      const next = await login(username, password, slug ?? (restaurant.trim().toLowerCase() || undefined))
       const target = next.mustChangePassword
         ? CHANGE_PASSWORD_PATH
         : allowed(from, next.role, next.restaurant)
@@ -74,6 +77,26 @@ export default function LoginScreen() {
             Per camerieri e ristoratori: entra con le credenziali che ti ha dato il locale.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {!slug && (
+              <div>
+                <label className="field-label" htmlFor="restaurant">
+                  Ristorante (indirizzo)
+                </label>
+                <input
+                  id="restaurant"
+                  className="field"
+                  autoCapitalize="none"
+                  autoComplete="off"
+                  placeholder="es. da-gino"
+                  aria-describedby="restaurant-hint"
+                  value={restaurant}
+                  onChange={(e) => setRestaurant(e.target.value)}
+                />
+                <p id="restaurant-hint" style={{ color: 'var(--text-3)', fontSize: 12.5, marginTop: 6 }}>
+                  Lo trovi nel link del tuo locale. Lascialo vuoto solo se sei l’admin centrale.
+                </p>
+              </div>
+            )}
             <div>
               <label className="field-label" htmlFor="username">
                 Utente

@@ -1,7 +1,7 @@
 # 0003 — Più ristoranti (design)
 
 - **Intent:** [docs/intents/0003-multi-ristorante.md](../intents/0003-multi-ristorante.md)
-- **Stato:** approvato (2026-11-18); fase 3a realizzata
+- **Stato:** realizzato (fasi 3a-3d, 2026-11-18)
 - **ADR da scrivere:** multi-tenancy a colonna (e perché non uno schema o un DB per ristorante)
 
 ## Contesto
@@ -52,7 +52,7 @@
 - [x] **3a Backend e dati** (login: senza slug entra anche uno staff con username univoco, transitorio fino alla 3d; `GET /api/menu` ora è dello staff; QR invariato): modello, migration "espandi", `RestaurantContext`, filtri su tutti gli endpoint, tolto `ristorante_singolo`, test di isolamento, login con slug, CLI (`promote-superadmin`, `--restaurant`). Verifica: pytest incluso il test "due ristoranti"; `test_openapi_sync`.
 - [x] **3b Piattaforma** (`/api/platform`, `app/users.py` condiviso con la 3c, UI `/piattaforma`): API e interfaccia `/piattaforma` (ristoranti, admin dei ristoranti, attiva/disattiva). Verifica: test API e prova da interfaccia.
 - [x] **3c Utenti del ristorante e nuovi indirizzi** (`/api/users`, cambio password obbligatorio, `/ristorante/:slug/…`, QR nuovo, vecchi indirizzi che reindirizzano): API e schermata utenti, cambio password al primo accesso, rotte `/ristorante/:slug/…`, QR nuovo e redirect dei vecchi. Verifica: test frontend e QR vecchio e nuovo aperti a mano.
-- [ ] **3d Restringi**: migration finale e pulizia dei redirect temporanei.
+- [x] **3d Restringi** (login staff solo con slug, `slug` NOT NULL; i redirect dei vecchi indirizzi restano: servono ai QR già stampati): migration finale e pulizia dei redirect temporanei.
 
 ## Test e verifica
 Criteri dell'intent con evidenza; test di isolamento; migration provata su una copia dei dati con un ristorante e due utenti; prova end-to-end su anteprima Vercel con due ristoranti.

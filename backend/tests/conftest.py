@@ -81,7 +81,7 @@ def make_user(db):
         elif restaurant is _PRIMO_RISTORANTE:
             restaurant = db.scalar(select(Restaurant).order_by(Restaurant.id).limit(1))
             if restaurant is None:
-                restaurant = Restaurant(name="Ristorante di test")
+                restaurant = Restaurant(name="Ristorante di test", slug="ristorante-di-test")
                 db.add(restaurant)
                 db.flush()
         user = AppUser(

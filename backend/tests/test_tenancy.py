@@ -314,16 +314,30 @@ def test_login_superadmin_senza_slug_e_staff_non_entra_con_slug_altrui(client, m
     assert r.status_code == 401
 
 
-def test_login_transitorio_senza_slug_trova_lo_staff_se_univoco(client, make_user, due):
-    """Finché il frontend non invia lo slug (fase 3c), un username unico entra comunque."""
-    a, b = due
+def test_lo_staff_senza_slug_non_entra(client, make_user, due):
+    """L'accesso senza ristorante è solo dell'admin centrale: lo staff indica il suo locale."""
+    a, _ = due
     make_user("solo", UserRole.ADMIN, "password-solo-12", restaurant=a["r"])
     r = client.post("/api/auth/login", json={"username": "solo", "password": "password-solo-12"})
-    assert r.status_code == 200
-    make_user("doppio", UserRole.WAITER, "password-doppia-1", restaurant=a["r"])
-    make_user("doppio", UserRole.WAITER, "password-doppia-1", restaurant=b["r"])
-    r = client.post("/api/auth/login", json={"username": "doppio", "password": "password-doppia-1"})
     assert r.status_code == 401
+    r = client.post(
+        "/api/auth/login",
+        json={"username": "solo", "password": "password-solo-12", "restaurant": "da-gino"},
+    )
+    assert r.status_code == 200
+
+
+def test_il_ristorante_senza_slug_riceve_un_indirizzo_valido(db):
+    from app.slugs import valid_slug
+
+    r = Restaurant(name="Caffè dell'Angolo!")
+    db.add(r)
+    db.flush()
+    assert valid_slug(r.slug) and r.slug.startswith("caffe-dell-angolo-")
+    altro = Restaurant(name="Caffè dell'Angolo!")
+    db.add(altro)
+    db.flush()
+    assert altro.slug != r.slug
 
 
 def test_login_ristorante_disattivato_rifiutato(client, db, make_user, due):
