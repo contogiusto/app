@@ -21,18 +21,42 @@ from app.config import settings
 from app.deps import DbSession, OptionalCustomer
 from app.errors import Conflict, NotFound
 from app.models import OrderItem, Restaurant, RestaurantTable, SessionStatus, TableSession
+from app.routers.menu import elenco_menu
 from app.routers.orders import totale_sessione
 from app.schemas import (
+    MenuItemOut,
     ModeIn,
     PaymentIn,
     PaymentOut,
     PublicOrderItemOut,
     PublicPaymentOut,
+    PublicRestaurantOut,
     PublicSessionOut,
     PublicTableOut,
 )
 
+restaurants_router = APIRouter(prefix="/api/public/restaurants", tags=["public"])
 router = APIRouter(prefix="/api/public/tables/{table_id}", tags=["public"])
+
+
+def _ristorante_attivo(db: Session, slug: str) -> Restaurant:
+    restaurant = db.scalar(select(Restaurant).where(Restaurant.slug == slug.lower()))
+    if restaurant is None or not restaurant.active:
+        raise NotFound("Ristorante non trovato")
+    return restaurant
+
+
+@restaurants_router.get("/{slug}")
+def ristorante_pubblico(slug: str, db: DbSession) -> PublicRestaurantOut:
+    restaurant = _ristorante_attivo(db, slug)
+    return PublicRestaurantOut(slug=restaurant.slug, name=restaurant.name)
+
+
+@restaurants_router.get("/{slug}/menu")
+def menu_pubblico(slug: str, db: DbSession) -> list[MenuItemOut]:
+    restaurant = _ristorante_attivo(db, slug)
+    piatti = elenco_menu(db, restaurant.id, solo_disponibili=True)
+    return [MenuItemOut.model_validate(p) for p in piatti]
 
 
 def _tavolo_dal_qr(
@@ -48,6 +72,9 @@ def _tavolo_dal_qr(
     ratelimit.verifica(chiave_ip, settings.rate_limit_public_fail_max, finestra)
 
     table = db.get(RestaurantTable, table_id)
+    # Un ristorante disattivato non è raggiungibile dai clienti: stesso 404 di un QR sbagliato.
+    if table is not None and not db.get(Restaurant, table.restaurant_id).active:
+        table = None
     token = x_table_token or ""
     # Confronto a tempo costante; se il tavolo non esiste si confronta comunque con un valore finto.
     atteso = table.qr_token if table else secrets.token_urlsafe(16)

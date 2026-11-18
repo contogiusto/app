@@ -41,12 +41,12 @@
 - **Rischi:** deliverability (SPF/DKIM), abuso dell'endpoint per spedire email (rate limit), enumerazione (risposta uniforme), fornitore nell'informativa.
 
 ## Piano a task
-- [ ] 1. **Decisione fornitore e dominio** (azione tua: dominio e account Resend). Verifica: email di prova consegnata.
+- [ ] 1. **Fornitore: Resend, piano gratuito (deciso).** Azione tua: creare l'account Resend e **verificare un dominio** (record DNS SPF/DKIM) per poter scrivere a destinatari qualsiasi; senza dominio Resend invia solo al tuo indirizzo (`onboarding@resend.dev`). Il piano gratuito non costa; il dominio sì, se non ne hai già uno. Verifica: email di prova consegnata a un indirizzo esterno.
 - [ ] 2. Backend: `app/email.py`, tabella token, `request`/`confirm`, `password_changed_at` e controllo `iat`, rate limit. Test-first: token scaduto, usato o inesistente, risposta uniforme, invalidazione dei vecchi token, limiti.
 - [ ] 3. Frontend: "Password dimenticata?", `/reset-password`, cambio password dal profilo.
 - [ ] 4. Backend e frontend: ristoranti visitati e filtro storico (dopo 0003a).
 - [ ] 5. QR e `parseTableLink` con controllo dello slug (dopo 0003c).
-- [ ] 6. Informativa, `CLAUDE.md`, `docs/domain.md`.
+- [ ] 6. Informativa, `CLAUDE.md`, `docs/domain.md`. Revisione dell'informativa (2026-11-18), da applicare con questa fase: (a) togliere la sezione «Nessuna verifica dell'email» (sarebbe falsa) e descrivere il recupero password; (b) aggiungere Resend tra i fornitori, con indicazione del trasferimento extra-UE; (c) indicare i tempi dei contatori anti-abuso (oggi «breve periodo») e dei token di reset (1 h); (d) aggiungere la base giuridica (esecuzione del servizio richiesto); (e) con più ristoranti chiarire chi è titolare: la piattaforma per l'account, il ristorante per i conti del proprio locale; (f) verificare la regione di Neon e Vercel prima di scrivere «in Europa»; (g) compilare `privacyConfig.ts` (titolare, indirizzo, contatto, data: oggi tutti «da indicare») **prima di usare l'app con clienti veri**; (h) informativa breve anche per lo staff (account e log di accesso). Da far vedere al titolare o a un consulente: non è un parere legale.
 
 ## Test e verifica
 Criteri dell'intent con evidenza; prova reale con un'email vera su anteprima; test su `parseTableLink` con link ostili (altro dominio, slug sbagliato, percorsi con `..`).

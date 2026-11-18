@@ -19,6 +19,8 @@ Prezzo = Annotated[Decimal, Field(ge=0, max_digits=8, decimal_places=2)]
 class LoginRequest(BaseModel):
     username: str
     password: str
+    # Slug del ristorante di cui si è staff; assente per l'admin centrale.
+    restaurant: str | None = None
 
 
 class TokenResponse(BaseModel):
@@ -282,6 +284,11 @@ class PublicSessionOut(BaseModel):
     next_share: Decimal | None
     items: list[PublicOrderItemOut]
     payments: list[PublicPaymentOut]
+
+
+class PublicRestaurantOut(BaseModel):
+    slug: str
+    name: str
 
 
 class PublicTableOut(BaseModel):

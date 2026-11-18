@@ -155,8 +155,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Menu Pubblico */
-        get: operations["menu_pubblico_api_menu_get"];
+        /**
+         * Menu Disponibile
+         * @description Piatti disponibili del ristorante dell'utente (il menu per i clienti è sotto /api/public).
+         */
+        get: operations["menu_disponibile_api_menu_get"];
         put?: never;
         /** Crea Piatto */
         post: operations["crea_piatto_api_menu_post"];
@@ -211,6 +214,40 @@ export interface paths {
         get?: never;
         /** Conferma Contanti */
         put: operations["conferma_contanti_api_payments__payment_id__confirm_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/restaurants/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ristorante Pubblico */
+        get: operations["ristorante_pubblico_api_public_restaurants__slug__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/restaurants/{slug}/menu": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Menu Pubblico */
+        get: operations["menu_pubblico_api_public_restaurants__slug__menu_get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -589,6 +626,8 @@ export interface components {
         LoginRequest: {
             /** Password */
             password: string;
+            /** Restaurant */
+            restaurant?: string | null;
             /** Username */
             username: string;
         };
@@ -755,6 +794,13 @@ export interface components {
             method: components["schemas"]["PaymentMethod"];
             status: components["schemas"]["PaymentStatus"];
         };
+        /** PublicRestaurantOut */
+        PublicRestaurantOut: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
+        };
         /** PublicSessionOut */
         PublicSessionOut: {
             /** Coperti */
@@ -846,7 +892,7 @@ export interface components {
          * UserRole
          * @enum {string}
          */
-        UserRole: "ADMIN" | "WAITER";
+        UserRole: "SUPERADMIN" | "ADMIN" | "WAITER";
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -1136,7 +1182,7 @@ export interface operations {
             };
         };
     };
-    menu_pubblico_api_menu_get: {
+    menu_disponibile_api_menu_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1291,6 +1337,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PaymentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ristorante_pubblico_api_public_restaurants__slug__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicRestaurantOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    menu_pubblico_api_public_restaurants__slug__menu_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuItemOut"][];
                 };
             };
             /** @description Validation Error */

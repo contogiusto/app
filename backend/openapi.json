@@ -291,6 +291,17 @@
             "title": "Password",
             "type": "string"
           },
+          "restaurant": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restaurant"
+          },
           "username": {
             "title": "Username",
             "type": "string"
@@ -733,6 +744,24 @@
         "title": "PublicPaymentOut",
         "type": "object"
       },
+      "PublicRestaurantOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "name"
+        ],
+        "title": "PublicRestaurantOut",
+        "type": "object"
+      },
       "PublicSessionOut": {
         "properties": {
           "coperti": {
@@ -1000,6 +1029,7 @@
       },
       "UserRole": {
         "enum": [
+          "SUPERADMIN",
           "ADMIN",
           "WAITER"
         ],
@@ -1393,7 +1423,8 @@
     },
     "/api/menu": {
       "get": {
-        "operationId": "menu_pubblico_api_menu_get",
+        "description": "Piatti disponibili del ristorante dell'utente (il menu per i clienti è sotto /api/public).",
+        "operationId": "menu_disponibile_api_menu_get",
         "responses": {
           "200": {
             "content": {
@@ -1402,7 +1433,7 @@
                   "items": {
                     "$ref": "#/components/schemas/MenuItemOut"
                   },
-                  "title": "Response Menu Pubblico Api Menu Get",
+                  "title": "Response Menu Disponibile Api Menu Get",
                   "type": "array"
                 }
               }
@@ -1410,7 +1441,12 @@
             "description": "Successful Response"
           }
         },
-        "summary": "Menu Pubblico",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Menu Disponibile",
         "tags": [
           "menu"
         ]
@@ -1629,6 +1665,94 @@
         "summary": "Conferma Contanti",
         "tags": [
           "payments"
+        ]
+      }
+    },
+    "/api/public/restaurants/{slug}": {
+      "get": {
+        "operationId": "ristorante_pubblico_api_public_restaurants__slug__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicRestaurantOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ristorante Pubblico",
+        "tags": [
+          "public"
+        ]
+      }
+    },
+    "/api/public/restaurants/{slug}/menu": {
+      "get": {
+        "operationId": "menu_pubblico_api_public_restaurants__slug__menu_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MenuItemOut"
+                  },
+                  "title": "Response Menu Pubblico Api Public Restaurants  Slug  Menu Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Menu Pubblico",
+        "tags": [
+          "public"
         ]
       }
     },

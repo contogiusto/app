@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.deps import DbSession, StaffUser
+from app.deps import DbSession, RestaurantId, SessioneDelRistorante, StaffUser
 from app.models import (
     OrderItem,
     Payment,
@@ -34,8 +34,11 @@ def esito_sessione(db: Session, session: TableSession) -> SessionOut:
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-def apri_sessione(data: SessionIn, db: DbSession, _staff: StaffUser) -> SessionOut:
-    if db.get(RestaurantTable, data.table_id) is None:
+def apri_sessione(
+    data: SessionIn, db: DbSession, _staff: StaffUser, restaurant_id: RestaurantId
+) -> SessionOut:
+    tavolo = db.get(RestaurantTable, data.table_id)
+    if tavolo is None or tavolo.restaurant_id != restaurant_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Tavolo non trovato")
     aperta = db.scalar(
         select(TableSession.id).where(
@@ -57,13 +60,20 @@ def apri_sessione(data: SessionIn, db: DbSession, _staff: StaffUser) -> SessionO
 
 
 @router.get("/open")
-def sessioni_aperte(db: DbSession, _staff: StaffUser) -> list[OpenSessionOut]:
+def sessioni_aperte(
+    db: DbSession, _staff: StaffUser, restaurant_id: RestaurantId
+) -> list[OpenSessionOut]:
     """Tutte le sessioni aperte in una sola richiesta: evita di interrogarle una a una."""
+    mie = (
+        select(TableSession.id)
+        .join(RestaurantTable, RestaurantTable.id == TableSession.table_id)
+        .where(RestaurantTable.restaurant_id == restaurant_id)
+    )
     totali = dict(
         db.execute(
-            select(
-                OrderItem.session_id, func.sum(OrderItem.unit_price * OrderItem.quantity)
-            ).group_by(OrderItem.session_id)
+            select(OrderItem.session_id, func.sum(OrderItem.unit_price * OrderItem.quantity))
+            .where(OrderItem.session_id.in_(mie))
+            .group_by(OrderItem.session_id)
         ).all()
     )
     pagamenti = {
@@ -73,12 +83,14 @@ def sessioni_aperte(db: DbSession, _staff: StaffUser) -> list[OpenSessionOut]:
                 Payment.session_id,
                 func.sum(Payment.amount),
                 func.count().filter(Payment.status == PaymentStatus.CASH),
-            ).group_by(Payment.session_id)
+            )
+            .where(Payment.session_id.in_(mie))
+            .group_by(Payment.session_id)
         ).all()
     }
     aperte = db.scalars(
         select(TableSession)
-        .where(TableSession.status == SessionStatus.OPEN)
+        .where(TableSession.status == SessionStatus.OPEN, TableSession.id.in_(mie))
         .order_by(TableSession.id)
     )
     zero = Decimal("0.00")
@@ -96,7 +108,7 @@ def sessioni_aperte(db: DbSession, _staff: StaffUser) -> list[OpenSessionOut]:
     ]
 
 
-@router.get("/{session_id}")
+@router.get("/{session_id}", dependencies=[SessioneDelRistorante])
 def leggi_sessione(session_id: int, db: DbSession, _staff: StaffUser) -> SessionOut:
     session = db.get(TableSession, session_id)
     if session is None:

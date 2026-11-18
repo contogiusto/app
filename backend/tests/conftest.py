@@ -63,13 +63,33 @@ def client(db):
     app.dependency_overrides.clear()
 
 
+_PRIMO_RISTORANTE = object()
+
+
 @pytest.fixture
 def make_user(db):
-    from app.models import AppUser
+    """Crea un utente. Senza `restaurant` lo staff va nel primo ristorante già presente nel test
+    (o in uno nuovo); il SUPERADMIN non ha ristorante. `restaurant=None` forza nessun ristorante."""
+    from sqlalchemy import select
+
+    from app.models import AppUser, Restaurant, UserRole
     from app.security import hash_password
 
-    def _make(username: str, role, password: str = "pw-di-test"):
-        user = AppUser(username=username, password_hash=hash_password(password), role=role)
+    def _make(username: str, role, password: str = "pw-di-test", restaurant=_PRIMO_RISTORANTE):
+        if role == UserRole.SUPERADMIN:
+            restaurant = None
+        elif restaurant is _PRIMO_RISTORANTE:
+            restaurant = db.scalar(select(Restaurant).order_by(Restaurant.id).limit(1))
+            if restaurant is None:
+                restaurant = Restaurant(name="Ristorante di test")
+                db.add(restaurant)
+                db.flush()
+        user = AppUser(
+            username=username,
+            password_hash=hash_password(password),
+            role=role,
+            restaurant_id=restaurant.id if restaurant else None,
+        )
         db.add(user)
         db.flush()
         return user
