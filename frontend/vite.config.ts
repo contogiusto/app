@@ -12,5 +12,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // I test con molta digitazione (user-event) superano 5 s quando la macchina è carica.
+    testTimeout: 20_000,
   },
 })

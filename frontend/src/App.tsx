@@ -2,7 +2,9 @@ import { Route, Routes } from 'react-router-dom'
 import AccountArea from './account/AccountArea'
 import { AccountProvider } from './account/AccountProvider'
 import HomePage from './account/HomePage'
+import ForgotPasswordPage from './account/ForgotPasswordPage'
 import PrivacyPage from './account/PrivacyPage'
+import ResetPasswordPage from './account/ResetPasswordPage'
 import { RequireCustomer } from './account/RequireCustomer'
 import AdminApp from './admin/AdminApp'
 import { CustomerApp } from './customer/CustomerApp'
@@ -52,6 +54,8 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/password-dimenticata" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       {/* Area del cliente registrato: le sotto-rotte le definisce AccountArea. */}
       <Route
         path="/customer/*"

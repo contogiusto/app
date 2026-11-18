@@ -28,6 +28,8 @@ describe('informativa sulla privacy', () => {
       controllerName: 'Trattoria Rossi S.r.l.',
       controllerAddress: 'Via Roma 1, Milano',
       contactEmail: 'privacy@rossi.example',
+      hostingRegion: '',
+      databaseRegion: 'Francoforte (UE)',
       updatedAt: '1 gennaio 2027',
     })
     expect(screen.getByText(/Trattoria Rossi S\.r\.l\./)).toBeInTheDocument()
@@ -46,10 +48,20 @@ describe('informativa sulla privacy', () => {
       'I tuoi diritti',
       'Cosa salva il browser',
       'Chi ospita i dati',
+      'Email e recupero della password',
+      'Se lavori in un ristorante',
     ]) {
       expect(screen.getByRole('heading', { name: title })).toBeInTheDocument()
     }
     expect(screen.getByText(/Vercel/)).toBeInTheDocument()
     expect(screen.getByText(/Neon/)).toBeInTheDocument()
+    expect(screen.getByText(/Resend/)).toBeInTheDocument()
+  })
+
+  it('non dice più che manca il recupero password e non inventa le regioni dei server', () => {
+    renderPage()
+    expect(screen.queryByText(/non esiste il recupero della password/)).toBeNull()
+    expect(screen.queryByText(/dati in Europa/)).toBeNull()
+    expect(screen.getByText(/Database: Neon/)).toHaveTextContent('regione: da indicare')
   })
 })

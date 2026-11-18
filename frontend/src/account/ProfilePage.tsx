@@ -21,6 +21,7 @@ export default function ProfilePage() {
         Profilo
       </h1>
       <DataForm />
+      <PasswordForm />
 
       <section className="card" style={{ padding: 20, marginTop: 28 }}>
         <h2 className="display" style={{ fontSize: 20, marginBottom: 6 }}>
@@ -34,7 +35,7 @@ export default function ProfilePage() {
         </button>
       </section>
 
-      <section className="card" style={{ padding: 20, marginTop: 16, borderColor: 'var(--accent)' }}>
+      <section className="card" style={{ padding: 20, marginTop: 16, borderColor: 'var(--danger)' }}>
         <h2 className="display" style={{ fontSize: 20, marginBottom: 6 }}>
           Elimina account
         </h2>
@@ -46,8 +47,7 @@ export default function ProfilePage() {
         </p>
         <button
           type="button"
-          className="btn"
-          style={{ background: 'var(--accent-deep)' }}
+          className="btn btn--danger"
           onClick={() => setDeleting(true)}
         >
           Elimina il mio account…
@@ -206,8 +206,8 @@ function DeleteDialog({ onClose }: { onClose: () => void }) {
     <Modal title="Eliminare l’account?" role="alertdialog" onClose={onClose}>
       <form onSubmit={confirm} noValidate>
         <p style={{ fontSize: 14.5, lineHeight: 1.5, marginBottom: 10 }}>
-          <strong>Viene cancellato:</strong> il tuo nome, cognome, città, email e l’accesso con la
-          password. Non potrai più entrare.
+          <strong>Viene cancellato:</strong> il tuo nome, cognome, città, email, l’accesso con la
+          password e gli eventuali link di recupero password. Non potrai più entrare.
         </p>
         <p style={{ fontSize: 14.5, lineHeight: 1.5, marginBottom: 16, color: 'var(--text-2)' }}>
           <strong>Resta:</strong> i pagamenti già fatti, ma non più collegati a te e con il nome
@@ -232,8 +232,7 @@ function DeleteDialog({ onClose }: { onClose: () => void }) {
           </button>
           <button
             type="submit"
-            className="btn"
-            style={{ background: remove.isPending ? undefined : 'var(--accent-deep)' }}
+            className="btn btn--danger"
             disabled={remove.isPending}
           >
             {remove.isPending ? 'Eliminazione…' : 'Elimina definitivamente'}
@@ -241,5 +240,82 @@ function DeleteDialog({ onClose }: { onClose: () => void }) {
         </div>
       </form>
     </Modal>
+  )
+}
+
+const PASSWORD_MIN = 8
+const PASSWORD_MAX = 128
+
+function PasswordForm() {
+  const { changePassword } = useAccount()
+  const [current, setCurrent] = useState('')
+  const [next, setNext] = useState('')
+  const [repeat, setRepeat] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [done, setDone] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  async function submit(event: FormEvent) {
+    event.preventDefault()
+    if (busy) return
+    setDone(false)
+    if (!current) {
+      setError('Inserisci la password attuale.')
+      return
+    }
+    if (next.length < PASSWORD_MIN || next.length > PASSWORD_MAX) {
+      setError(`La nuova password deve avere da ${PASSWORD_MIN} a ${PASSWORD_MAX} caratteri.`)
+      return
+    }
+    if (next !== repeat) {
+      setError('Le due password nuove non coincidono.')
+      return
+    }
+    setBusy(true)
+    setError(null)
+    try {
+      await changePassword(current, next)
+      setCurrent('')
+      setNext('')
+      setRepeat('')
+      setDone(true)
+    } catch (e) {
+      setError(message(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form onSubmit={submit} noValidate aria-label="Cambia password" className="card" style={{ padding: 20, marginTop: 16 }}>
+      <h2 className="display" style={{ fontSize: 20, marginBottom: 14 }}>
+        Cambia password
+      </h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div>
+          <label className="field-label" htmlFor="pw-current">
+            Password attuale
+          </label>
+          <input id="pw-current" className="field" type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label" htmlFor="pw-new">
+            Nuova password
+          </label>
+          <input id="pw-new" className="field" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label" htmlFor="pw-repeat">
+            Ripeti la nuova password
+          </label>
+          <input id="pw-repeat" className="field" type="password" autoComplete="new-password" value={repeat} onChange={(e) => setRepeat(e.target.value)} />
+        </div>
+      </div>
+      {error && <ErrorNote>{error}</ErrorNote>}
+      {done && <InfoNote>Password cambiata.</InfoNote>}
+      <button type="submit" className="btn" style={{ marginTop: 18 }} disabled={busy}>
+        {busy ? 'Salvataggio…' : 'Cambia password'}
+      </button>
+    </form>
   )
 }

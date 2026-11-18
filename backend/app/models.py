@@ -100,6 +100,8 @@ class Customer(Base):
     city: Mapped[str | None] = mapped_column(String(100))
     # Quando ha accettato l'informativa sulla privacy (obbligatoria per registrarsi).
     privacy_accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # I token emessi prima di questo istante non valgono più (cambio o recupero password).
+    password_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -239,3 +241,19 @@ class RateLimitCounter(Base):
     window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     count: Mapped[int]
+
+
+class PasswordResetToken(Base):
+    """Link di recupero password. Del token si conserva solo l'hash (SHA-256): quello in chiaro
+    esiste solo nell'email. Vale per un tempo limitato e una volta sola."""
+
+    __tablename__ = "password_reset_token"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    customer_id: Mapped[int] = mapped_column(
+        ForeignKey("customer.id", ondelete="CASCADE"), index=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

@@ -58,6 +58,7 @@ def create_customer_token(
     payload = {
         "sub": str(customer.id),
         "typ": CUSTOMER,
+        "iat": datetime.now(UTC),
         "exp": datetime.now(UTC) + expires_in,
     }
     return jwt.encode(payload, _secret(), algorithm=ALGORITHM)

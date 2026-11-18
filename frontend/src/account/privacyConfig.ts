@@ -10,6 +10,10 @@ export const PRIVACY_CONFIG = {
   controllerAddress: '',
   /** Email a cui scrivere per esercitare i diritti sui dati. */
   contactEmail: '',
+  /** Regione dei server di Vercel (hosting), se la si vuole indicare. */
+  hostingRegion: '',
+  /** Regione del database Neon, es. "Francoforte (UE)": da controllare nella console Neon. */
+  databaseRegion: '',
   /** Data dell'ultimo aggiornamento dell'informativa, es. "1 gennaio 2027". */
   updatedAt: '',
 }

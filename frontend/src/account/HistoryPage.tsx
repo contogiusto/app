@@ -1,12 +1,15 @@
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
 import { ErrorNote } from './parts'
 import { PaymentCard } from './payments'
-import { usePayments } from './queries'
+import { usePayments, useVisitedRestaurants } from './queries'
 
 /** /customer/history: tutti i pagamenti legati all'account, dal più recente. */
 export default function HistoryPage() {
-  const payments = usePayments()
+  const [params, setParams] = useSearchParams()
+  const restaurant = params.get('ristorante') ?? undefined
+  const payments = usePayments(restaurant)
+  const visited = useVisitedRestaurants()
   return (
     <div>
       <h1 className="display" style={{ fontSize: 28, lineHeight: 1.15, marginBottom: 6 }}>
@@ -15,6 +18,27 @@ export default function HistoryPage() {
       <p style={{ color: 'var(--text-2)', fontSize: 14.5, marginBottom: 20 }}>
         I pagamenti fatti al tavolo mentre eri collegato.
       </p>
+
+      {visited.isSuccess && visited.data.length > 1 && (
+        <div style={{ marginBottom: 18 }}>
+          <label className="field-label" htmlFor="history-restaurant">
+            Ristorante
+          </label>
+          <select
+            id="history-restaurant"
+            className="field"
+            value={restaurant ?? ''}
+            onChange={(e) => setParams(e.target.value ? { ristorante: e.target.value } : {})}
+          >
+            <option value="">Tutti</option>
+            {visited.data.map((r) => (
+              <option key={r.slug} value={r.slug}>
+                {r.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {payments.isPending && <p role="status" style={{ color: 'var(--text-2)' }}>Caricamento…</p>}
 

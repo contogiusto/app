@@ -10,6 +10,14 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://contogiusto:contogiusto@localhost:5433/contogiusto"
     jwt_secret: str = "change-me"
     frontend_url: str = "http://localhost:5173"
+    # Invio email (Resend). Senza, il link di recupero password finisce solo nel log.
+    resend_api_key: str = ""
+    email_from: str = ""
+    # Senza Resend il testo delle email (con il link segreto) si scrive nel log solo in sviluppo:
+    # su Vercel il log è condiviso e il link varrebbe come accesso all'account.
+    email_log_links: bool = Field(default_factory=lambda: not os.environ.get("VERCEL"))
+    # Validità del link di recupero password.
+    password_reset_ttl_minutes: int = 60
 
     # Rate limit (vedi app/ratelimit.py). Le finestre sono in secondi.
     rate_limit_enabled: bool = True
@@ -33,6 +41,13 @@ class Settings(BaseSettings):
     # in massa o prova a scoprire quali email sono già registrate.
     rate_limit_register_max: int = 10
     rate_limit_register_window: int = 3600
+    # Richiesta del link di recupero password: ogni richiesta conta (anche per email inesistenti),
+    # per IP e per email.
+    rate_limit_reset_ip_max: int = 5
+    rate_limit_reset_email_max: int = 3
+    rate_limit_reset_window: int = 3600
+    # Link con token errato (conferma) per IP.
+    rate_limit_reset_fail_max: int = 10
 
     @field_validator("database_url")
     @classmethod

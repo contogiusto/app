@@ -1,6 +1,6 @@
 # 0004 — Account cliente: password dimenticata e ristoranti visitati
 
-- **Stato:** proposto
+- **Stato:** completato (manca la prova con un'email vera: serve il dominio su Resend)
 - **Data:** 2026-11-18
 - **Design:** [docs/design/0004-account-cliente-ristoranti.md](../design/0004-account-cliente-ristoranti.md)
 - **Dipende da:** [0003](0003-multi-ristorante.md) (gli indirizzi dei ristoranti)

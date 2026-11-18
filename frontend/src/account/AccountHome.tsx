@@ -3,7 +3,7 @@ import { Icon } from '../ui/Icon'
 import { useAccount } from './account'
 import { ErrorNote } from './parts'
 import { PaymentCard } from './payments'
-import { usePayments } from './queries'
+import { formatDateTime, usePayments, useVisitedRestaurants } from './queries'
 
 const RECENT = 3
 
@@ -11,6 +11,7 @@ const RECENT = 3
 export default function AccountHome() {
   const { session } = useAccount()
   const payments = usePayments()
+  const restaurants = useVisitedRestaurants()
   const recent = payments.data?.slice(0, RECENT) ?? []
   return (
     <div className="stagger">
@@ -29,6 +30,33 @@ export default function AccountHome() {
       <p style={{ fontSize: 13.5, color: 'var(--text-2)', margin: '10px 4px 0' }}>
         Con l’account i pagamenti che fai al tavolo finiscono nel tuo storico.
       </p>
+
+      {restaurants.isSuccess && restaurants.data.length > 0 && (
+        <section aria-labelledby="visited" style={{ marginTop: 32 }}>
+          <h2 id="visited" className="display" style={{ fontSize: 20, marginBottom: 12 }}>
+            I tuoi ristoranti
+          </h2>
+          <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {restaurants.data.map((r) => (
+              <li key={r.slug}>
+                <Link
+                  to={`/ristorante/${r.slug}`}
+                  className="card pressable"
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', color: 'inherit', textDecoration: 'none' }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, overflowWrap: 'anywhere' }}>{r.name}</div>
+                    <div style={{ color: 'var(--text-3)', fontSize: 13 }}>
+                      {r.visits} {r.visits === 1 ? 'visita' : 'visite'} · ultima {formatDateTime(r.last_visit)}
+                    </div>
+                  </div>
+                  <Icon name="arrow" size={16} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section aria-labelledby="recent" style={{ marginTop: 32 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
