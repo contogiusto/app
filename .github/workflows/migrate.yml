@@ -1,0 +1,72 @@
+name: Migration del database
+
+# Applica `alembic upgrade head` al database di produzione (Neon) a ogni push su main, così
+# schema e codice restano allineati senza passi a mano (ADR 0002).
+# Serve il secret DATABASE_URL_UNPOOLED: la connessione DIRETTA di Neon (non il pooler), con
+# password, inserita da chi gestisce l'account. Senza, il job si ferma senza dare errore.
+#
+# Le migration partono in parallelo al deploy Vercel: per questo ogni migration deve essere
+# compatibile con la versione di codice precedente (expand/contract, vedi ADR 0002).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/migrations/**"
+      - ".github/workflows/migrate.yml"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Mostra soltanto le migration da applicare (alembic current/heads), senza eseguirle"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+# Una migration alla volta, mai interrotta a metà da un'altra.
+concurrency:
+  group: migrate-production
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL_UNPOOLED }}
+    steps:
+      # Il checkout va per primo: la cartella di lavoro (backend) esiste solo dopo.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: backend
+      - name: Controllo del secret
+        id: secret
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::notice::Secret DATABASE_URL_UNPOOLED non impostato: migration non applicate."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: astral-sh/setup-uv@v5
+        if: steps.secret.outputs.present == 'true'
+        with:
+          working-directory: backend
+      - run: uv sync --frozen --no-dev
+        if: steps.secret.outputs.present == 'true'
+      - name: Stato attuale e migration da applicare
+        if: steps.secret.outputs.present == 'true'
+        run: |
+          echo "Revisione attuale del database:"
+          uv run alembic current
+          echo "Ultima revisione nel codice:"
+          uv run alembic heads
+      - name: Applica le migration
+        if: steps.secret.outputs.present == 'true' && (github.event_name == 'push' || inputs.dry_run == false)
+        run: uv run alembic upgrade head
+      - name: Revisione finale
+        if: steps.secret.outputs.present == 'true' && (github.event_name == 'push' || inputs.dry_run == false)
+        run: uv run alembic current
