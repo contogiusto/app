@@ -4,11 +4,16 @@ from fastapi import APIRouter, HTTPException, Response, status
 from sqlalchemy import exists, select
 from sqlalchemy.orm import Session
 
-from app.deps import DbSession, StaffUser
+from app.deps import DbSession, RestaurantId, SessioneDelRistorante, StaffUser
 from app.models import MenuItem, OrderItem, Payment, PaymentItem, SessionStatus, TableSession
 from app.schemas import OrderIn, OrderItemOut, OrderListOut
 
-router = APIRouter(prefix="/api/sessions/{session_id}/orders", tags=["orders"])
+router = APIRouter(
+    prefix="/api/sessions/{session_id}/orders",
+    tags=["orders"],
+    # Sessione di un altro ristorante (o inesistente): 404 prima di qualsiasi altra cosa.
+    dependencies=[SessioneDelRistorante],
+)
 
 
 def _riga(item: OrderItem) -> OrderItemOut:
@@ -60,11 +65,11 @@ def elenco_ordini(session_id: int, db: DbSession, _staff: StaffUser) -> OrderLis
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 def aggiungi_ordine(
-    session_id: int, data: OrderIn, db: DbSession, staff: StaffUser
+    session_id: int, data: OrderIn, db: DbSession, staff: StaffUser, restaurant_id: RestaurantId
 ) -> OrderItemOut:
     _sessione_modificabile(db, session_id)
     piatto = db.get(MenuItem, data.menu_item_id)
-    if piatto is None:
+    if piatto is None or piatto.restaurant_id != restaurant_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Piatto non trovato")
     if not piatto.available:
         raise HTTPException(status.HTTP_409_CONFLICT, "Piatto non disponibile")

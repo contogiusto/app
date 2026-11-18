@@ -13,6 +13,7 @@ from sqlalchemy import (
     Numeric,
     String,
     UniqueConstraint,
+    false,
     func,
     text,
     true,
@@ -23,7 +24,8 @@ from app.db import Base
 
 
 class UserRole(enum.StrEnum):
-    ADMIN = "ADMIN"
+    SUPERADMIN = "SUPERADMIN"  # admin centrale: gestisce ristoranti e utenti, non i loro dati
+    ADMIN = "ADMIN"  # admin di un ristorante
     WAITER = "WAITER"
 
 
@@ -58,12 +60,28 @@ def _enum(cls: type[enum.Enum], name: str) -> Enum:
 
 
 class AppUser(Base):
+    """Utente dello staff. `restaurant_id` è nullo solo per l'admin centrale (SUPERADMIN)."""
+
     __tablename__ = "app_user"
+    __table_args__ = (
+        UniqueConstraint("restaurant_id", "username", name="uq_app_user_restaurant_username"),
+        # Con restaurant_id nullo l'UNIQUE sopra non confronta nulla: serve un indice parziale.
+        Index(
+            "uq_app_user_platform_username",
+            "username",
+            unique=True,
+            postgresql_where=text("restaurant_id IS NULL"),
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(String(64), unique=True)
+    restaurant_id: Mapped[int | None] = mapped_column(ForeignKey("restaurant.id"), index=True)
+    username: Mapped[str] = mapped_column(String(64))
     password_hash: Mapped[str] = mapped_column(String(255))
     role: Mapped[UserRole] = mapped_column(_enum(UserRole, "user_role"))
+    active: Mapped[bool] = mapped_column(default=True, server_default=true())
+    # La password provvisoria la imposta chi crea l'utenza: al primo accesso va cambiata.
+    must_change_password: Mapped[bool] = mapped_column(default=False, server_default=false())
 
 
 class Customer(Base):
@@ -88,6 +106,10 @@ class Restaurant(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(120))
+    # Indirizzo del locale (/ristorante/<slug>). Nullable solo durante la transizione (fase 3d).
+    slug: Mapped[str | None] = mapped_column(String(40), unique=True)
+    active: Mapped[bool] = mapped_column(default=True, server_default=true())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class MenuItem(Base):

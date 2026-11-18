@@ -3,7 +3,7 @@ import { Icon } from '../ui/Icon'
 import { Logo } from '../ui/Logo'
 import { useAuth } from './auth'
 
-const ROLE_LABEL = { ADMIN: 'Ristoratore', WAITER: 'Cameriere' } as const
+const ROLE_LABEL = { SUPERADMIN: 'Admin centrale', ADMIN: 'Ristoratore', WAITER: 'Cameriere' } as const
 
 type Props = {
   title: string

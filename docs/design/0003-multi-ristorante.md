@@ -1,7 +1,7 @@
 # 0003 — Più ristoranti (design)
 
 - **Intent:** [docs/intents/0003-multi-ristorante.md](../intents/0003-multi-ristorante.md)
-- **Stato:** bozza, da approvare
+- **Stato:** approvato (2026-11-18); fase 3a realizzata
 - **ADR da scrivere:** multi-tenancy a colonna (e perché non uno schema o un DB per ristorante)
 
 ## Contesto
@@ -32,7 +32,7 @@
 
 ### Migration (ADR 0002: espandi → migra → restringi)
 1. *Espandi* (compatibile col codice vecchio): colonne nuove nullable o con default; `slug` del ristorante esistente derivato dal nome; CHECK dei ruoli allargato a `SUPERADMIN`. Gli utenti `ADMIN` esistenti restano `ADMIN` e vengono legati al primo ristorante: il codice nuovo li tratta come admin di quel locale.
-2. *Promuovi*: a deploy completato, la CLI `promote-superadmin <username>` porta l'utente attuale a admin centrale (e `create-user` accetta `--restaurant <slug>`). Si passa dal codice perché `SUPERADMIN` non è `ADMIN` per il codice vecchio: promuovere durante la transizione romperebbe il vecchio deploy.
+2. *Promuovi* (decisione confermata: l'admin attuale diventa admin centrale): a deploy completato, la CLI `promote-superadmin <username>` porta l'utente attuale a admin centrale (e `create-user` accetta `--restaurant <slug>`). Si passa dal codice perché `SUPERADMIN` non è `ADMIN` per il codice vecchio: promuovere durante la transizione romperebbe il vecchio deploy.
 3. *Restringi*: `restaurant.slug` NOT NULL e unico, CHECK definitivo sui ruoli.
 
 ## Alternative scartate
@@ -45,10 +45,11 @@
 - **API/DB:** nuove colonne e rotte come sopra; `openapi.json` e `schema.d.ts` da rigenerare; il login ha un parametro facoltativo (compatibile).
 - **UI:** rotte nuove, schermata piattaforma, schermata utenti del ristorante, cambio password obbligatorio al primo accesso.
 - **Deploy:** nessuna variabile nuova. Il contenuto del QR cambia, il vecchio resta valido.
+- **Da fare nella 3c (dalla revisione di sicurezza):** `must_change_password` esiste ma non è ancora applicato (serve l'endpoint di cambio password e il blocco delle rotte dati finché non si cambia); togliere il login senza slug (3d) elimina anche i casi di ambiguità e il doppio budget di tentativi. Migration: il downgrade fallisce se due ristoranti hanno lo stesso username e cancella i SUPERADMIN; creare gli utenti con la CLI solo dopo il deploy (il codice vecchio li creerebbe senza ristorante).
 - **Rischi:** una query senza filtro di ristorante = fuga di dati tra locali (mitigato da test di isolamento e da una `/code-review` dedicata); slug riservati che collidono con le rotte; promozione a superadmin da fare a mano una volta.
 
 ## Piano a task (una PR per fase)
-- [ ] **3a Backend e dati**: modello, migration "espandi", `RestaurantContext`, filtri su tutti gli endpoint, tolto `ristorante_singolo`, test di isolamento, login con slug, CLI (`promote-superadmin`, `--restaurant`). Verifica: pytest incluso il test "due ristoranti"; `test_openapi_sync`.
+- [x] **3a Backend e dati** (login: senza slug entra anche uno staff con username univoco, transitorio fino alla 3d; `GET /api/menu` ora è dello staff; QR invariato): modello, migration "espandi", `RestaurantContext`, filtri su tutti gli endpoint, tolto `ristorante_singolo`, test di isolamento, login con slug, CLI (`promote-superadmin`, `--restaurant`). Verifica: pytest incluso il test "due ristoranti"; `test_openapi_sync`.
 - [ ] **3b Piattaforma**: API e interfaccia `/piattaforma` (ristoranti, admin dei ristoranti, attiva/disattiva). Verifica: test API e prova da interfaccia.
 - [ ] **3c Utenti del ristorante e nuovi indirizzi**: API e schermata utenti, cambio password al primo accesso, rotte `/ristorante/:slug/…`, QR nuovo e redirect dei vecchi. Verifica: test frontend e QR vecchio e nuovo aperti a mano.
 - [ ] **3d Restringi**: migration finale e pulizia dei redirect temporanei.

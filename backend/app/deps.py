@@ -5,10 +5,12 @@ from typing import Annotated
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import AppUser, Customer, UserRole
+from app.errors import NotFound
+from app.models import AppUser, Customer, Restaurant, RestaurantTable, TableSession, UserRole
 from app.security import CUSTOMER, STAFF, decode_access_token, token_type
 
 DbSession = Annotated[Session, Depends(get_db)]
@@ -36,7 +38,10 @@ def get_current_user(
         user = db.get(AppUser, int(payload["sub"]))
     except (jwt.PyJWTError, ValueError):
         raise _non_autenticato() from None
-    if user is None:
+    # Utente disattivato o locale disattivato: il token smette di valere subito.
+    if user is None or not user.active:
+        raise _non_autenticato()
+    if user.restaurant_id is not None and not db.get(Restaurant, user.restaurant_id).active:
         raise _non_autenticato()
     return user
 
@@ -90,5 +95,43 @@ def require_roles(*roles: UserRole):
     return checker
 
 
-AdminUser = Annotated[AppUser, Depends(require_roles(UserRole.ADMIN))]
-StaffUser = Annotated[AppUser, Depends(require_roles(UserRole.ADMIN, UserRole.WAITER))]
+def _operativo(*roles: UserRole):
+    """Ruoli di un ristorante: servono anche un ristorante di appartenenza (altrimenti 403)."""
+    controlla_ruolo = require_roles(*roles)
+
+    def checker(user: Annotated[AppUser, Depends(controlla_ruolo)]) -> AppUser:
+        if user.restaurant_id is None:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Utente non associato a un ristorante")
+        return user
+
+    return checker
+
+
+AdminUser = Annotated[AppUser, Depends(_operativo(UserRole.ADMIN))]
+StaffUser = Annotated[AppUser, Depends(_operativo(UserRole.ADMIN, UserRole.WAITER))]
+PlatformUser = Annotated[AppUser, Depends(require_roles(UserRole.SUPERADMIN))]
+
+
+def _id_ristorante(user: StaffUser) -> int:
+    assert user.restaurant_id is not None  # garantito da _operativo
+    return user.restaurant_id
+
+
+# Il ristorante dell'utente dello staff: ogni query dei dati di un locale deve filtrare per questo.
+RestaurantId = Annotated[int, Depends(_id_ristorante)]
+
+
+def _sessione_del_ristorante(session_id: int, db: DbSession, restaurant_id: RestaurantId) -> int:
+    """404 se la sessione non esiste o è di un altro ristorante (non si rivela quale)."""
+    trovata = db.scalar(
+        select(TableSession.id)
+        .join(RestaurantTable, RestaurantTable.id == TableSession.table_id)
+        .where(TableSession.id == session_id, RestaurantTable.restaurant_id == restaurant_id)
+    )
+    if trovata is None:
+        raise NotFound("Sessione non trovata")
+    return trovata
+
+
+# Da usare come `dependencies=[SessioneDelRistorante]` negli endpoint con `session_id` nel path.
+SessioneDelRistorante = Depends(_sessione_del_ristorante)

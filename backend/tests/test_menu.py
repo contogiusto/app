@@ -28,10 +28,11 @@ def _piatto(db, ristorante, name="Carbonara", price="12.00", available=True):
     return item
 
 
-def test_menu_pubblico_mostra_solo_piatti_disponibili(client, db, ristorante):
+def test_menu_per_staff_mostra_solo_piatti_disponibili(client, db, ristorante, auth_header):
     _piatto(db, ristorante, "Carbonara")
     _piatto(db, ristorante, "Esaurito", available=False)
-    r = client.get("/api/menu")
+    assert client.get("/api/menu").status_code == 401
+    r = client.get("/api/menu", headers=auth_header(UserRole.WAITER))
     assert r.status_code == 200
     assert [i["name"] for i in r.json()] == ["Carbonara"]
 
@@ -56,16 +57,18 @@ def test_crea_piatto_solo_admin(client, auth_header):
 
 
 def test_crea_piatto(client, ristorante, auth_header):
-    r = client.post("/api/menu", json=NUOVO, headers=auth_header(UserRole.ADMIN))
+    admin = auth_header(UserRole.ADMIN)
+    r = client.post("/api/menu", json=NUOVO, headers=admin)
     assert r.status_code == 201
     body = r.json()
     assert body["name"] == "Margherita"
     assert body["price"] == "8.50"
     assert body["available"] is True
-    assert client.get("/api/menu").json()[0]["id"] == body["id"]
+    elenco = client.get("/api/menu", headers=admin).json()
+    assert elenco[0]["id"] == body["id"]
 
 
-def test_crea_piatto_senza_ristorante_ne_crea_uno(client, db, auth_header):
+def test_crea_piatto_non_crea_ristoranti(client, db, ristorante, auth_header):
     r = client.post("/api/menu", json=NUOVO, headers=auth_header(UserRole.ADMIN))
     assert r.status_code == 201
     assert db.query(Restaurant).count() == 1

@@ -7,9 +7,8 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from app.config import settings
-from app.deps import AdminUser, DbSession, StaffUser
+from app.deps import AdminUser, DbSession, RestaurantId, StaffUser
 from app.models import RestaurantTable, SessionStatus, TableSession
-from app.routers.menu import ristorante_singolo
 from app.schemas import TableIn, TableOut
 
 router = APIRouter(prefix="/api/tables", tags=["tables"])
@@ -24,20 +23,27 @@ def _nuovo_token() -> str:
     return secrets.token_urlsafe(16)
 
 
-def _tavolo_o_404(db: DbSession, table_id: int) -> RestaurantTable:
+def _tavolo_o_404(db: DbSession, table_id: int, restaurant_id: int) -> RestaurantTable:
     table = db.get(RestaurantTable, table_id)
-    if table is None:
+    if table is None or table.restaurant_id != restaurant_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Tavolo non trovato")
     return table
 
 
 @router.get("")
-def elenco_tavoli(db: DbSession, _staff: StaffUser) -> list[TableOut]:
-    tavoli = db.scalars(select(RestaurantTable).order_by(RestaurantTable.number))
+def elenco_tavoli(db: DbSession, _staff: StaffUser, restaurant_id: RestaurantId) -> list[TableOut]:
+    tavoli = db.scalars(
+        select(RestaurantTable)
+        .where(RestaurantTable.restaurant_id == restaurant_id)
+        .order_by(RestaurantTable.number)
+    )
     aperte = dict(
         db.execute(
-            select(TableSession.table_id, TableSession.id).where(
-                TableSession.status == SessionStatus.OPEN
+            select(TableSession.table_id, TableSession.id)
+            .join(RestaurantTable, RestaurantTable.id == TableSession.table_id)
+            .where(
+                TableSession.status == SessionStatus.OPEN,
+                RestaurantTable.restaurant_id == restaurant_id,
             )
         ).all()
     )
@@ -45,9 +51,11 @@ def elenco_tavoli(db: DbSession, _staff: StaffUser) -> list[TableOut]:
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-def crea_tavolo(data: TableIn, db: DbSession, _admin: AdminUser) -> TableOut:
+def crea_tavolo(
+    data: TableIn, db: DbSession, _admin: AdminUser, restaurant_id: RestaurantId
+) -> TableOut:
     table = RestaurantTable(
-        restaurant_id=ristorante_singolo(db).id, number=data.number, qr_token=_nuovo_token()
+        restaurant_id=restaurant_id, number=data.number, qr_token=_nuovo_token()
     )
     db.add(table)
     try:
@@ -61,16 +69,20 @@ def crea_tavolo(data: TableIn, db: DbSession, _admin: AdminUser) -> TableOut:
 
 
 @router.post("/{table_id}/qr/regenerate", status_code=status.HTTP_204_NO_CONTENT)
-def rigenera_qr(table_id: int, db: DbSession, _admin: AdminUser) -> Response:
+def rigenera_qr(
+    table_id: int, db: DbSession, _admin: AdminUser, restaurant_id: RestaurantId
+) -> Response:
     """Invalida il vecchio QR (es. foto diffusa fuori dal locale) e ne attiva uno nuovo."""
-    _tavolo_o_404(db, table_id).qr_token = _nuovo_token()
+    _tavolo_o_404(db, table_id, restaurant_id).qr_token = _nuovo_token()
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/{table_id}/qr.svg")
-def qr_svg(table_id: int, db: DbSession, _admin: AdminUser) -> Response:
-    table = _tavolo_o_404(db, table_id)
+def qr_svg(
+    table_id: int, db: DbSession, _admin: AdminUser, restaurant_id: RestaurantId
+) -> Response:
+    table = _tavolo_o_404(db, table_id, restaurant_id)
     # `save(kind="svg")` produce un file SVG completo (con xmlns); `svg_inline` è pensato per
     # essere incollato in una pagina HTML e, servito come immagine, il browser non lo disegna.
     buffer = io.BytesIO()
