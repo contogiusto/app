@@ -37,7 +37,8 @@ export function loadStaffSession(now = Date.now()): StaffSession | null {
     const raw = localStorage.getItem(KEY)
     if (raw === null) return null
     const data = JSON.parse(raw) as Partial<StaffSession>
-    const validRole = data.role === 'ADMIN' || data.role === 'WAITER'
+    const validRole =
+      data.role === 'SUPERADMIN' || data.role === 'ADMIN' || data.role === 'WAITER'
     if (typeof data.token !== 'string' || typeof data.username !== 'string' || !validRole) {
       return null
     }

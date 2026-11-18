@@ -221,6 +221,94 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/platform/restaurants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Elenco Ristoranti */
+        get: operations["elenco_ristoranti_api_platform_restaurants_get"];
+        put?: never;
+        /** Crea Ristorante */
+        post: operations["crea_ristorante_api_platform_restaurants_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/restaurants/{restaurant_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Modifica Ristorante */
+        patch: operations["modifica_ristorante_api_platform_restaurants__restaurant_id__patch"];
+        trace?: never;
+    };
+    "/api/platform/restaurants/{restaurant_id}/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Utenti Del Ristorante */
+        get: operations["utenti_del_ristorante_api_platform_restaurants__restaurant_id__users_get"];
+        put?: never;
+        /** Crea Utente */
+        post: operations["crea_utente_api_platform_restaurants__restaurant_id__users_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/restaurants/{restaurant_id}/users/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Elimina Utente */
+        delete: operations["elimina_utente_api_platform_restaurants__restaurant_id__users__user_id__delete"];
+        options?: never;
+        head?: never;
+        /** Modifica Utente */
+        patch: operations["modifica_utente_api_platform_restaurants__restaurant_id__users__user_id__patch"];
+        trace?: never;
+    };
+    "/api/platform/restaurants/{restaurant_id}/users/{user_id}/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reimposta Password */
+        post: operations["reimposta_password_api_platform_restaurants__restaurant_id__users__user_id__reset_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/public/restaurants/{slug}": {
         parameters: {
             query?: never;
@@ -710,6 +798,11 @@ export interface components {
             /** Total */
             total: string;
         };
+        /** PasswordIn */
+        PasswordIn: {
+            /** Password */
+            password: string;
+        };
         /** PaymentIn */
         PaymentIn: {
             /** Customer Nickname */
@@ -830,6 +923,40 @@ export interface components {
             /** Table Number */
             table_number: number;
         };
+        /** RestaurantIn */
+        RestaurantIn: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
+        };
+        /** RestaurantOut */
+        RestaurantOut: {
+            /** Active */
+            active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
+            /** Users */
+            users: number;
+        };
+        /** RestaurantPatch */
+        RestaurantPatch: {
+            /** Active */
+            active?: boolean | null;
+            /** Name */
+            name?: string | null;
+            /** Slug */
+            slug?: string | null;
+        };
         /** SessionIn */
         SessionIn: {
             /** Coperti */
@@ -855,6 +982,37 @@ export interface components {
          * @enum {string}
          */
         SessionStatus: "OPEN" | "CLOSED";
+        /** StaffUserIn */
+        StaffUserIn: {
+            /** Password */
+            password: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "ADMIN" | "WAITER";
+            /** Username */
+            username: string;
+        };
+        /** StaffUserOut */
+        StaffUserOut: {
+            /** Active */
+            active: boolean;
+            /** Id */
+            id: number;
+            /** Must Change Password */
+            must_change_password: boolean;
+            role: components["schemas"]["UserRole"];
+            /** Username */
+            username: string;
+        };
+        /** StaffUserPatch */
+        StaffUserPatch: {
+            /** Active */
+            active?: boolean | null;
+            /** Role */
+            role?: ("ADMIN" | "WAITER") | null;
+        };
         /** TableIn */
         TableIn: {
             /** Number */
@@ -1338,6 +1496,260 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PaymentOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    elenco_ristoranti_api_platform_restaurants_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RestaurantOut"][];
+                };
+            };
+        };
+    };
+    crea_ristorante_api_platform_restaurants_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RestaurantIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RestaurantOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    modifica_ristorante_api_platform_restaurants__restaurant_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                restaurant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RestaurantPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RestaurantOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    utenti_del_ristorante_api_platform_restaurants__restaurant_id__users_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                restaurant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffUserOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    crea_utente_api_platform_restaurants__restaurant_id__users_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                restaurant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffUserIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffUserOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    elimina_utente_api_platform_restaurants__restaurant_id__users__user_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                restaurant_id: number;
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    modifica_utente_api_platform_restaurants__restaurant_id__users__user_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                restaurant_id: number;
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffUserPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffUserOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reimposta_password_api_platform_restaurants__restaurant_id__users__user_id__reset_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                restaurant_id: number;
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

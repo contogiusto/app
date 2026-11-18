@@ -28,6 +28,12 @@ export type CustomerAuth = Schemas['CustomerAuthOut']
 export type CustomerRegister = Schemas['CustomerRegisterIn']
 export type CustomerUpdate = Schemas['CustomerUpdateIn']
 export type CustomerPayment = Schemas['CustomerPaymentOut']
+export type Restaurant = Schemas['RestaurantOut']
+export type RestaurantIn = Schemas['RestaurantIn']
+export type RestaurantPatch = Schemas['RestaurantPatch']
+export type StaffUser = Schemas['StaffUserOut']
+export type StaffUserIn = Schemas['StaffUserIn']
+export type StaffUserPatch = Schemas['StaffUserPatch']
 
 /** Errore restituito dall'API (o di rete, con status 0). `message` è già pronto per l'utente. */
 export class ApiError extends Error {
@@ -41,7 +47,7 @@ export class ApiError extends Error {
 }
 
 type RequestOptions = {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
   headers?: Record<string, string>
   signal?: AbortSignal
@@ -214,6 +220,36 @@ export const api = {
     },
 
     /** Il menu pubblico (solo piatti disponibili) è `api.menu()`; qui quello completo. */
+    /** Admin centrale (SUPERADMIN): ristoranti e utenti dei ristoranti. */
+    platform: {
+      restaurants: () => authed<Restaurant[]>('/api/platform/restaurants'),
+      createRestaurant: (data: RestaurantIn) =>
+        authed<Restaurant>('/api/platform/restaurants', { method: 'POST', body: data }),
+      updateRestaurant: (id: number, data: RestaurantPatch) =>
+        authed<Restaurant>(`/api/platform/restaurants/${id}`, { method: 'PATCH', body: data }),
+      users: (restaurantId: number) =>
+        authed<StaffUser[]>(`/api/platform/restaurants/${restaurantId}/users`),
+      createUser: (restaurantId: number, data: StaffUserIn) =>
+        authed<StaffUser>(`/api/platform/restaurants/${restaurantId}/users`, {
+          method: 'POST',
+          body: data,
+        }),
+      updateUser: (restaurantId: number, userId: number, data: StaffUserPatch) =>
+        authed<StaffUser>(`/api/platform/restaurants/${restaurantId}/users/${userId}`, {
+          method: 'PATCH',
+          body: data,
+        }),
+      resetUserPassword: (restaurantId: number, userId: number, password: string) =>
+        authed<void>(`/api/platform/restaurants/${restaurantId}/users/${userId}/reset-password`, {
+          method: 'POST',
+          body: { password },
+        }),
+      removeUser: (restaurantId: number, userId: number) =>
+        authed<void>(`/api/platform/restaurants/${restaurantId}/users/${userId}`, {
+          method: 'DELETE',
+        }),
+    },
+
     menu: {
       all: () => authed<MenuItemOut[]>('/api/menu/all'),
       create: (item: MenuItemIn) =>

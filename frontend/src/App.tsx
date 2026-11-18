@@ -6,6 +6,7 @@ import PrivacyPage from './account/PrivacyPage'
 import { RequireCustomer } from './account/RequireCustomer'
 import AdminApp from './admin/AdminApp'
 import { CustomerApp } from './customer/CustomerApp'
+import PlatformApp from './platform/PlatformApp'
 import { AuthProvider } from './staff/AuthProvider'
 import LoginScreen from './staff/LoginScreen'
 import { RequireRole } from './staff/RequireRole'
@@ -74,6 +75,14 @@ function AppRoutes() {
         element={
           <RequireRole roles={['ADMIN']}>
             <AdminApp />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/piattaforma/*"
+        element={
+          <RequireRole roles={['SUPERADMIN']}>
+            <PlatformApp />
           </RequireRole>
         }
       />

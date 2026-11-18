@@ -325,8 +325,7 @@ function DeleteDish({
         {!alreadyOrdered && (
           <button
             type="button"
-            className="btn"
-            style={{ ['--bg' as string]: 'var(--accent-deep)' }}
+            className="btn btn--danger"
             disabled={remove.isPending}
             onClick={() => remove.mutate()}
           >
