@@ -49,6 +49,13 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     [accept],
   )
 
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string) => {
+      accept(await api.customer.changePassword(currentPassword, newPassword))
+    },
+    [accept],
+  )
+
   const setCustomer = useCallback((customer: Customer) => {
     setSession((current) => {
       if (current === null) return current
@@ -87,8 +94,8 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   }, [session, logout])
 
   const value = useMemo(
-    () => ({ session, notice, login, register, logout, setCustomer }),
-    [session, notice, login, register, logout, setCustomer],
+    () => ({ session, notice, login, register, logout, changePassword, setCustomer }),
+    [session, notice, login, register, logout, changePassword, setCustomer],
   )
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>
 }

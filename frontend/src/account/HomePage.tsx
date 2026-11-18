@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type InputHTMLAttributes, type KeyboardEvent } from 'react'
-import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { Icon } from '../ui/Icon'
 import { Logo } from '../ui/Logo'
@@ -21,6 +21,8 @@ const PASSWORD_MAX = 128
 export default function HomePage() {
   const { session, notice } = useAccount()
   const [params] = useSearchParams()
+  // Dopo aver scelto una nuova password si arriva qui con un avviso (passato dalla pagina del link).
+  const stateNotice = (useLocation().state as { notice?: unknown } | null)?.notice
   const to = safeRedirect(params.get('redirect'))
   const [mode, setMode] = useState<Mode>(params.get('mode') === 'register' ? 'register' : 'login')
   const [busy, setBusy] = useState(false)
@@ -50,6 +52,7 @@ export default function HomePage() {
         </p>
 
         {notice && <InfoNote>{notice}</InfoNote>}
+        {typeof stateNotice === 'string' && <InfoNote>{stateNotice}</InfoNote>}
 
         <div
           role="tablist"
@@ -188,6 +191,9 @@ function LoginForm({ to, busy, setBusy }: FormProps) {
       </div>
       {error && <ErrorNote>{error}</ErrorNote>}
       <SubmitButton busy={busy}>Accedi</SubmitButton>
+      <p style={{ marginTop: 14, fontSize: 14 }}>
+        <Link to="/password-dimenticata">Password dimenticata?</Link>
+      </p>
     </form>
   )
 }

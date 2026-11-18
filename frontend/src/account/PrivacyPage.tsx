@@ -38,6 +38,13 @@ export default function PrivacyPage({ config = PRIVACY_CONFIG }: { config?: Priv
           .
         </p>
 
+        <p>
+          <strong>Chi riceve i dati dei pagamenti:</strong> i ristoranti dove paghi vedono i dati
+          dei pagamenti fatti al loro tavolo (importo, data e ora, tavolo, piatti, nome indicato) e
+          li usano per i propri conti, come titolari autonomi. Se hai un account, quei pagamenti
+          compaiono anche nel tuo storico.
+        </p>
+
         <h2>Quali dati raccogliamo</h2>
         <ul>
           <li>Email, nome e cognome, e la città (solo se la indichi: è facoltativa).</li>
@@ -51,22 +58,28 @@ export default function PrivacyPage({ config = PRIVACY_CONFIG }: { config?: Priv
           </li>
           <li>Il nome che indichi al tavolo quando paghi.</li>
           <li>
-            Per limitare i tentativi ripetuti di accesso, per un breve periodo teniamo un contatore
-            associato all’indirizzo IP e all’email usati.
+            Se chiedi di recuperare la password, un link a scadenza spedito alla tua email: di
+            quel link conserviamo solo un codice non leggibile (<em>hash</em>), non il link.
+          </li>
+          <li>
+            Per limitare i tentativi ripetuti di accesso e le richieste di recupero password,
+            teniamo per un’ora al massimo un contatore associato all’indirizzo IP e all’email usati.
           </li>
         </ul>
 
         <h2>Perché li usiamo</h2>
         <p>
-          Per creare e gestire il tuo account e per mostrarti lo storico dei tuoi pagamenti. Non
-          usiamo i dati per pubblicità, profilazione o invio di messaggi promozionali, e non li
-          vendiamo.
+          Per creare e gestire il tuo account, per mostrarti lo storico dei tuoi pagamenti e per
+          farti recuperare la password. Non usiamo i dati per pubblicità, profilazione o invio di
+          messaggi promozionali, e non li vendiamo. Base giuridica: l’esecuzione del servizio che
+          richiedi quando crei e usi l’account.
         </p>
 
         <h2>Per quanto tempo li conserviamo</h2>
         <p>
           Finché il tuo account esiste. Quando lo elimini dal profilo, cancelliamo email, nome,
-          cognome, città e l’accesso. I pagamenti già effettuati restano perché servono al
+          cognome, città, l’accesso e gli eventuali link di recupero password. I link scaduti si
+          cancellano da soli entro pochi giorni. I pagamenti già effettuati restano perché servono al
           ristorante per i suoi conti, ma non sono più collegati a te, e il nome che avevi indicato
           al tavolo su quei pagamenti viene sostituito con «Cliente eliminato». I pagamenti fatti
           da ospite, senza account, non sono collegati a nessun account e restano com’erano.
@@ -88,14 +101,33 @@ export default function PrivacyPage({ config = PRIVACY_CONFIG }: { config?: Priv
 
         <h2>Chi ospita i dati</h2>
         <ul>
-          <li>Hosting dell’applicazione: Vercel.</li>
-          <li>Database: Neon (PostgreSQL), con i dati in Europa.</li>
+          <li>
+            Hosting dell’applicazione: Vercel
+            {config.hostingRegion ? <> (regione: {config.hostingRegion})</> : null}.
+          </li>
+          <li>
+            Database: Neon (PostgreSQL), regione: {config.databaseRegion || TBD}.
+          </li>
+          <li>
+            Invio delle email (solo per il recupero della password): Resend, con sede negli Stati
+            Uniti. Riceve il tuo indirizzo email e il testo del messaggio.
+          </li>
         </ul>
 
-        <h2>Nessuna verifica dell’email</h2>
+        <h2>Email e recupero della password</h2>
         <p>
-          Non inviamo email: non verifichiamo l’indirizzo e non esiste il recupero della password.
-          Conserva con cura la tua password.
+          Quando ti registri non verifichiamo che l’email sia tua. Se dimentichi la password puoi
+          chiedere un link dalla pagina di accesso: lo spediamo all’email dell’account, vale un’ora
+          e una sola volta, e dopo averlo usato i vecchi accessi non funzionano più. La risposta alla
+          richiesta è sempre la stessa, anche se l’email non è registrata.
+        </p>
+
+        <h2>Se lavori in un ristorante</h2>
+        <p>
+          Chi lavora in un locale (cameriere, admin) ha un accesso con nome utente, password (solo
+          come <em>hash</em>), ruolo e ristorante, creato dal locale. Registriamo quali ordini ha
+          inserito, per i conti del ristorante. Il titolare di questi dati è il ristorante; per
+          modificarli o cancellarli rivolgiti a lui.
         </p>
       </main>
     </div>

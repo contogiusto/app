@@ -28,6 +28,7 @@ export type CustomerAuth = Schemas['CustomerAuthOut']
 export type CustomerRegister = Schemas['CustomerRegisterIn']
 export type CustomerUpdate = Schemas['CustomerUpdateIn']
 export type CustomerPayment = Schemas['CustomerPaymentOut']
+export type VisitedRestaurant = Schemas['VisitedRestaurantOut']
 export type PublicRestaurant = Schemas['PublicRestaurantOut']
 export type Restaurant = Schemas['RestaurantOut']
 export type RestaurantIn = Schemas['RestaurantIn']
@@ -309,7 +310,32 @@ export const api = {
     /** Elimina l'account e i dati personali (i pagamenti restano, anonimi). Chiede la password. */
     remove: (password: string) =>
       authedCustomer<void>('/api/customer/me', { method: 'DELETE', body: { password } }),
-    payments: () => authedCustomer<CustomerPayment[]>('/api/customer/payments'),
+    /** Con `restaurant` (slug) solo i pagamenti di quel ristorante. */
+    payments: (restaurant?: string) =>
+      authedCustomer<CustomerPayment[]>(
+        restaurant
+          ? `/api/customer/payments?restaurant=${encodeURIComponent(restaurant)}`
+          : '/api/customer/payments',
+      ),
+    /** I ristoranti dove il cliente ha pagato, dall'ultimo visitato. */
+    restaurants: () => authedCustomer<VisitedRestaurant[]>('/api/customer/restaurants'),
+    /** Cambio della propria password (chiede quella attuale); dà un token nuovo. */
+    changePassword: (currentPassword: string, newPassword: string) =>
+      authedCustomer<CustomerAuth>('/api/customer/me/password', {
+        method: 'POST',
+        body: { current_password: currentPassword, new_password: newPassword },
+      }),
+    /** Spedisce il link di recupero password: la risposta è la stessa per ogni email. */
+    requestPasswordReset: (email: string) =>
+      request<{ detail: string }>('/api/customer/auth/password-reset/request', {
+        method: 'POST',
+        body: { email },
+      }),
+    confirmPasswordReset: (token: string, password: string) =>
+      request<void>('/api/customer/auth/password-reset/confirm', {
+        method: 'POST',
+        body: { token, password },
+      }),
   },
 
   /** Percorso cliente: si accede col tavolo e il token del QR, senza account. */

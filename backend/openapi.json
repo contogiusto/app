@@ -104,6 +104,27 @@
         "title": "CustomerOut",
         "type": "object"
       },
+      "CustomerPasswordChangeIn": {
+        "properties": {
+          "current_password": {
+            "maxLength": 128,
+            "title": "Current Password",
+            "type": "string"
+          },
+          "new_password": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "New Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "current_password",
+          "new_password"
+        ],
+        "title": "CustomerPasswordChangeIn",
+        "type": "object"
+      },
       "CustomerPaymentItemOut": {
         "properties": {
           "category": {
@@ -164,6 +185,17 @@
           "restaurant_name": {
             "title": "Restaurant Name",
             "type": "string"
+          },
+          "restaurant_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restaurant Slug"
           },
           "session_opened_at": {
             "format": "date-time",
@@ -562,6 +594,42 @@
           "password"
         ],
         "title": "PasswordIn",
+        "type": "object"
+      },
+      "PasswordResetConfirmIn": {
+        "properties": {
+          "password": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password",
+            "type": "string"
+          },
+          "token": {
+            "maxLength": 200,
+            "minLength": 20,
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "password"
+        ],
+        "title": "PasswordResetConfirmIn",
+        "type": "object"
+      },
+      "PasswordResetRequestIn": {
+        "properties": {
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "PasswordResetRequestIn",
         "type": "object"
       },
       "PaymentIn": {
@@ -1350,6 +1418,40 @@
         ],
         "title": "ValidationError",
         "type": "object"
+      },
+      "VisitedRestaurantOut": {
+        "properties": {
+          "last_visit": {
+            "format": "date-time",
+            "title": "Last Visit",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "total_paid": {
+            "title": "Total Paid",
+            "type": "string"
+          },
+          "visits": {
+            "title": "Visits",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "visits",
+          "last_visit",
+          "total_paid"
+        ],
+        "title": "VisitedRestaurantOut",
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -1520,6 +1622,86 @@
         ]
       }
     },
+    "/api/customer/auth/password-reset/confirm": {
+      "post": {
+        "operationId": "conferma_reset_api_customer_auth_password_reset_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetConfirmIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Conferma Reset",
+        "tags": [
+          "customer"
+        ]
+      }
+    },
+    "/api/customer/auth/password-reset/request": {
+      "post": {
+        "description": "Spedisce il link di recupero password. La risposta è sempre la stessa, anche per email\nnon registrate (nessun modo di scoprire chi ha un account); ogni richiesta conta nei limiti,\nper IP e per email, così non si usa l'endpoint per spedire email in massa.",
+        "operationId": "richiedi_reset_api_customer_auth_password_reset_request_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetRequestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Richiedi Reset Api Customer Auth Password Reset Request Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Richiedi Reset",
+        "tags": [
+          "customer"
+        ]
+      }
+    },
     "/api/customer/auth/register": {
       "post": {
         "operationId": "registrati_api_customer_auth_register_post",
@@ -1669,9 +1851,75 @@
         ]
       }
     },
+    "/api/customer/me/password": {
+      "post": {
+        "description": "Cambio della propria password (chiede quella attuale). I token emessi prima non valgono\npiù: si risponde con uno nuovo per questa sessione.",
+        "operationId": "cambia_password_api_customer_me_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerPasswordChangeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerAuthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Cambia Password",
+        "tags": [
+          "customer"
+        ]
+      }
+    },
     "/api/customer/payments": {
       "get": {
+        "description": "Lo storico del cliente; con `restaurant` (slug) solo i pagamenti di quel ristorante.",
         "operationId": "storico_pagamenti_api_customer_payments_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "restaurant",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Restaurant"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -1686,6 +1934,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "security": [
@@ -1694,6 +1952,37 @@
           }
         ],
         "summary": "Storico Pagamenti",
+        "tags": [
+          "customer"
+        ]
+      }
+    },
+    "/api/customer/restaurants": {
+      "get": {
+        "description": "I ristoranti dove il cliente ha pagato (anche alla cassa), dall'ultimo visitato.",
+        "operationId": "ristoranti_visitati_api_customer_restaurants_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VisitedRestaurantOut"
+                  },
+                  "title": "Response Ristoranti Visitati Api Customer Restaurants Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Ristoranti Visitati",
         "tags": [
           "customer"
         ]

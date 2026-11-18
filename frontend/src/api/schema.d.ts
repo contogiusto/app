@@ -77,6 +77,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/customer/auth/password-reset/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Conferma Reset */
+        post: operations["conferma_reset_api_customer_auth_password_reset_confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/customer/auth/password-reset/request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Richiedi Reset
+         * @description Spedisce il link di recupero password. La risposta è sempre la stessa, anche per email
+         *     non registrate (nessun modo di scoprire chi ha un account); ogni richiesta conta nei limiti,
+         *     per IP e per email, così non si usa l'endpoint per spedire email in massa.
+         */
+        post: operations["richiedi_reset_api_customer_auth_password_reset_request_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/customer/auth/register": {
         parameters: {
             query?: never;
@@ -119,6 +158,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/customer/me/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cambia Password
+         * @description Cambio della propria password (chiede quella attuale). I token emessi prima non valgono
+         *     più: si risponde con uno nuovo per questa sessione.
+         */
+        post: operations["cambia_password_api_customer_me_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/customer/payments": {
         parameters: {
             query?: never;
@@ -126,8 +186,31 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Storico Pagamenti */
+        /**
+         * Storico Pagamenti
+         * @description Lo storico del cliente; con `restaurant` (slug) solo i pagamenti di quel ristorante.
+         */
         get: operations["storico_pagamenti_api_customer_payments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/customer/restaurants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ristoranti Visitati
+         * @description I ristoranti dove il cliente ha pagato (anche alla cassa), dall'ultimo visitato.
+         */
+        get: operations["ristoranti_visitati_api_customer_restaurants_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -714,6 +797,13 @@ export interface components {
             /** Last Name */
             last_name: string;
         };
+        /** CustomerPasswordChangeIn */
+        CustomerPasswordChangeIn: {
+            /** Current Password */
+            current_password: string;
+            /** New Password */
+            new_password: string;
+        };
         /** CustomerPaymentItemOut */
         CustomerPaymentItemOut: {
             /** Category */
@@ -746,6 +836,8 @@ export interface components {
             mode: components["schemas"]["PaymentMode"];
             /** Restaurant Name */
             restaurant_name: string;
+            /** Restaurant Slug */
+            restaurant_slug?: string | null;
             /**
              * Session Opened At
              * Format: date-time
@@ -884,6 +976,21 @@ export interface components {
         PasswordIn: {
             /** Password */
             password: string;
+        };
+        /** PasswordResetConfirmIn */
+        PasswordResetConfirmIn: {
+            /** Password */
+            password: string;
+            /** Token */
+            token: string;
+        };
+        /** PasswordResetRequestIn */
+        PasswordResetRequestIn: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
         };
         /** PaymentIn */
         PaymentIn: {
@@ -1162,6 +1269,22 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /** VisitedRestaurantOut */
+        VisitedRestaurantOut: {
+            /**
+             * Last Visit
+             * Format: date-time
+             */
+            last_visit: string;
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
+            /** Total Paid */
+            total_paid: string;
+            /** Visits */
+            visits: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -1277,6 +1400,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CustomerAuthOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    conferma_reset_api_customer_auth_password_reset_confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetConfirmIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    richiedi_reset_api_customer_auth_password_reset_request_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetRequestIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
                 };
             };
             /** @description Validation Error */
@@ -1407,7 +1596,71 @@ export interface operations {
             };
         };
     };
+    cambia_password_api_customer_me_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerPasswordChangeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerAuthOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     storico_pagamenti_api_customer_payments_get: {
+        parameters: {
+            query?: {
+                restaurant?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerPaymentOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ristoranti_visitati_api_customer_restaurants_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1422,7 +1675,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CustomerPaymentOut"][];
+                    "application/json": components["schemas"]["VisitedRestaurantOut"][];
                 };
             };
         };

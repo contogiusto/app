@@ -209,6 +209,33 @@ class CustomerLoginIn(BaseModel):
         return value.strip().lower()
 
 
+class PasswordResetRequestIn(BaseModel):
+    email: EmailStr
+
+    @field_validator("email")
+    @classmethod
+    def _email_minuscola(cls, value: str) -> str:
+        return value.strip().lower()
+
+
+class PasswordResetConfirmIn(BaseModel):
+    token: Annotated[str, Field(min_length=20, max_length=200)]
+    password: Annotated[str, Field(min_length=8, max_length=128)]
+
+
+class CustomerPasswordChangeIn(BaseModel):
+    current_password: Annotated[str, Field(max_length=128)]
+    new_password: Annotated[str, Field(min_length=8, max_length=128)]
+
+
+class VisitedRestaurantOut(BaseModel):
+    slug: str
+    name: str
+    visits: int
+    last_visit: datetime
+    total_paid: Decimal
+
+
 class CustomerUpdateIn(BaseModel):
     first_name: Nome
     last_name: Nome
@@ -260,6 +287,7 @@ class CustomerPaymentOut(BaseModel):
     session_opened_at: datetime
     table_number: int
     restaurant_name: str
+    restaurant_slug: str | None = None
     items: list[CustomerPaymentItemOut]
 
 

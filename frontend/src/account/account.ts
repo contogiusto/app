@@ -12,6 +12,8 @@ export type AccountContextValue = {
   login: (email: string, password: string) => Promise<AccountSession>
   register: (data: CustomerRegister) => Promise<AccountSession>
   logout: (notice?: string) => void
+  /** Cambia la propria password; il server dà un token nuovo (i vecchi non valgono più). */
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   /** Dopo una modifica del profilo: aggiorna i dati che l'app mostra e ricorda. */
   setCustomer: (customer: Customer) => void
 }

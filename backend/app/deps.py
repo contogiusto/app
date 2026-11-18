@@ -59,7 +59,11 @@ def _cliente_dal_token(db: Session, token: str) -> Customer | None:
         payload = decode_access_token(token)
         if token_type(payload) != CUSTOMER:
             return None
-        return db.get(Customer, int(payload["sub"]))
+        customer = db.get(Customer, int(payload["sub"]))
+        changed = customer.password_changed_at if customer else None
+        if changed is not None and payload.get("iat", 0) < int(changed.timestamp()):
+            return None  # emesso prima dell'ultimo cambio di password
+        return customer
     except (jwt.PyJWTError, ValueError):
         return None
 
