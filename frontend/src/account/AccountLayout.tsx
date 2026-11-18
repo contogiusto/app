@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 import { Icon, type IconName } from '../ui/Icon'
+import { Logo } from '../ui/Logo'
 import { Initial } from '../ui/primitives'
 import { useAccount } from './account'
 import './account.css'
@@ -35,6 +36,7 @@ export default function AccountLayout({ children }: { children: ReactNode }) {
     <div className="app-bg acc" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <header className="acc-top">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Logo size={30} />
           <Initial name={name} size={34} />
           <strong style={{ fontSize: 15 }}>{session?.customer.first_name}</strong>
         </div>

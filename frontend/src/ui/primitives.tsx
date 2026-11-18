@@ -1,13 +1,47 @@
-import type { CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { formatMoney } from '../lib/money'
 import { initialsOf } from '../lib/names'
 import { Icon } from './Icon'
 
-/** Importo in centesimi, con cifre di larghezza fissa per non far "ballare" gli elenchi. */
-export function Money({ cents, style }: { cents: number; style?: CSSProperties }) {
+const REDUCED = '(prefers-reduced-motion: reduce)'
+
+/** Porta un numero verso `target` con un'interpolazione ease-out; nei test e con movimento ridotto salta subito. */
+function useTween(target: number, enabled: boolean, ms = 450) {
+  const [value, setValue] = useState(target)
+  const from = useRef(target)
+  useEffect(() => {
+    const skip =
+      !enabled ||
+      import.meta.env.MODE === 'test' ||
+      (typeof window.matchMedia === 'function' && window.matchMedia(REDUCED).matches)
+    if (skip || from.current === target) {
+      from.current = target
+      setValue(target)
+      return
+    }
+    const start = from.current
+    const t0 = performance.now()
+    let frame = 0
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - t0) / ms)
+      const eased = 1 - Math.pow(1 - t, 4)
+      const current = start + (target - start) * eased
+      from.current = current
+      setValue(current)
+      if (t < 1) frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [target, enabled, ms])
+  return Math.round(value)
+}
+
+/** Importo in centesimi, con cifre di larghezza fissa per non far "ballare" gli elenchi. Con `animate` conta fino al nuovo valore. */
+export function Money({ cents, style, animate = false }: { cents: number; style?: CSSProperties; animate?: boolean }) {
+  const shown = useTween(cents, animate)
   return (
     <span className="tnum" style={style}>
-      {formatMoney(cents)}
+      {formatMoney(shown)}
     </span>
   )
 }

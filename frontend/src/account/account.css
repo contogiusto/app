@@ -9,6 +9,7 @@
 
 .acc-tabs { display: flex; gap: 4px; padding: 4px; background: var(--wash-2); border-radius: var(--r-md); }
 .acc-tab {
+  transition: background-color .2s var(--ease), color .2s var(--ease), box-shadow .2s var(--ease), transform .16s var(--ease);
   flex: 1; border: none; background: transparent; border-radius: var(--r-sm);
   padding: 10px 12px; font-weight: 700; font-size: 15px; color: var(--text-2);
 }
@@ -44,3 +45,11 @@
 .acc-prose h2 { font-weight: 600; letter-spacing: -0.015em; font-size: 24px; margin: 28px 0 8px; }
 .acc-prose p, .acc-prose li { line-height: 1.55; color: var(--text-2); }
 .acc-prose ul { padding-left: 20px; margin: 8px 0; }
+
+.acc-tab:active { transform: scale(.97); }
+.acc .acc-nav a, .acc .acc-bottom a { transition: background-color .16s var(--ease), color .16s var(--ease), transform .16s var(--ease); }
+.acc .acc-bottom a:active { transform: scale(.94); }
+.acc-top { position: sticky; top: 0; z-index: 10; background: color-mix(in oklab, var(--surface) 82%, transparent); -webkit-backdrop-filter: saturate(1.4) blur(14px); backdrop-filter: saturate(1.4) blur(14px); }
+.acc .acc-bottom { background: color-mix(in oklab, var(--surface) 88%, transparent); -webkit-backdrop-filter: saturate(1.4) blur(14px); backdrop-filter: saturate(1.4) blur(14px); }
+.acc .acc-bottom a[aria-current='page'] svg { transform: translateY(-1px) scale(1.08); }
+.acc .acc-bottom a svg { transition: transform .22s var(--ease); }

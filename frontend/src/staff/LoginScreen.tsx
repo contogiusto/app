@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ApiError, type UserRole } from '../api/client'
 import { Icon } from '../ui/Icon'
+import { Logo } from '../ui/Logo'
 import { Screen } from '../ui/layout'
 import { homeFor, useAuth } from './auth'
 
@@ -47,7 +48,8 @@ export default function LoginScreen() {
         style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 26px' }}
       >
         <form onSubmit={submit} className="stagger" style={{ width: '100%', maxWidth: 380 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 22 }}>
+          <Logo size={44} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '22px 0' }}>
             <Icon name="lock" size={16} style={{ color: 'var(--accent)' }} />
             <span className="eyebrow">Area staff</span>
           </div>

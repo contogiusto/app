@@ -55,34 +55,13 @@ export function Modal({ title, onClose, children, role = 'dialog' }: Props) {
   }, [])
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'var(--scrim)',
-        zIndex: 200,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 20,
-        animation: 'flash-in .2s',
-      }}
-    >
+    <div className="modal-backdrop">
       <div
         ref={ref}
         role={role}
         aria-modal="true"
         aria-labelledby={titleId}
-        className="card"
-        style={{
-          width: 460,
-          maxWidth: '100%',
-          maxHeight: '100%',
-          overflow: 'auto',
-          padding: 28,
-          animation: 'pop-in .3s var(--ease)',
-          boxShadow: 'var(--shadow-lg)',
-        }}
+        className="card modal-panel"
       >
         <h2 id={titleId} className="display" style={{ fontSize: 20, marginBottom: 20 }}>
           {title}

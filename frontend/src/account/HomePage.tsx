@@ -2,6 +2,7 @@ import { useState, type FormEvent, type InputHTMLAttributes, type KeyboardEvent 
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { Icon } from '../ui/Icon'
+import { Logo } from '../ui/Logo'
 import { useAccount } from './account'
 import './account.css'
 import { ErrorNote, GENERIC_ERROR, InfoNote } from './parts'
@@ -38,7 +39,8 @@ export default function HomePage() {
   return (
     <div className="app-bg acc" style={{ height: '100%', overflow: 'auto' }}>
       <main style={{ maxWidth: 420, margin: '0 auto', padding: '40px 22px 32px' }}>
-        <span className="eyebrow">Il tuo account</span>
+        <Logo size={44} />
+        <span className="eyebrow" style={{ display: 'block', marginTop: 22 }}>Il tuo account</span>
         <h1 className="display" style={{ fontSize: 34, lineHeight: 1.15, margin: '10px 0 12px' }}>
           Conto Giusto
         </h1>

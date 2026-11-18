@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Icon } from '../ui/Icon'
+import { Logo } from '../ui/Logo'
 import { useAuth } from './auth'
 
 const ROLE_LABEL = { ADMIN: 'Ristoratore', WAITER: 'Cameriere' } as const
@@ -17,15 +18,19 @@ export function StaffLayout({ title, actions, children }: Props) {
   return (
     <div className="app-bg" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <header
+        className="glass"
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 16,
           padding: '12px 22px',
           borderBottom: '1px solid var(--border)',
-          background: 'var(--surface)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
         }}
       >
+        <Logo size={30} />
         <h1 className="display" style={{ fontSize: 20, lineHeight: 1.15, flex: 1 }}>
           {title}
         </h1>

@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useState, type CSSProperties, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { PaymentMode, PublicSession, PublicTable } from '../api/client'
 import { loginUrl } from '../account/redirect'
@@ -235,7 +235,7 @@ function ModeCard({ title, sub, icon, lines, disabled, onClick }: ModeCardProps)
   return (
     <button
       type="button"
-      className="card"
+      className="card pressable"
       disabled={disabled}
       onClick={onClick}
       style={{
@@ -457,17 +457,12 @@ export function Hub({
           </section>
         ) : (
           <section
-            className="card pop"
-            style={{
-              padding: 22,
-              marginBottom: 16,
-              background: 'var(--accent-tint)',
-              border: '1.5px solid var(--border-strong)',
-            }}
+            className="card card--hero pop"
+            style={{ padding: 22, marginBottom: 16 }}
           >
             <span className="eyebrow">La tua quota</span>
-            <div className="display tnum" style={{ fontSize: 44, lineHeight: 1.15, margin: '6px 0 4px', color: 'var(--accent-deep)' }}>
-              {mode === 'ROMANA' && share !== null ? <Money cents={share} /> : null}
+            <div className="display tnum" style={{ fontSize: 48, lineHeight: 1.1, margin: '8px 0 6px' }}>
+              {mode === 'ROMANA' && share !== null ? <Money cents={share} animate /> : null}
               {mode === 'OWN' && <span style={{ fontSize: 18 }}>da definire</span>}
               {mode === 'ROMANA' && share === null && <span style={{ fontSize: 18 }}>—</span>}
             </div>
@@ -646,7 +641,7 @@ function MethodCard({
   return (
     <button
       type="button"
-      className="card"
+      className="card pressable"
       disabled={disabled}
       onClick={onClick}
       style={{ textAlign: 'left', padding: 18, display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', background: 'var(--surface-2)' }}
@@ -734,6 +729,11 @@ export function Processing() {
   )
 }
 
+const CONFETTI: [number, string][] = [
+  [0, 'var(--accent)'], [40, 'var(--warn)'], [80, 'var(--ok)'], [120, 'var(--cat-3)'], [160, 'var(--cat-5)'],
+  [200, 'var(--accent)'], [240, 'var(--warn)'], [280, 'var(--ok)'], [320, 'var(--cat-2)'],
+]
+
 export function Settled({
   restaurantName,
   mine,
@@ -748,20 +748,20 @@ export function Settled({
       <main
         style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18, padding: '0 30px', textAlign: 'center' }}
       >
-        <div
-          style={{
-            width: 76,
-            height: 76,
-            borderRadius: '50%',
-            background: 'var(--ok)',
-            color: 'var(--on-accent)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            animation: 'pop-in .5s var(--ease)',
-          }}
-        >
-          <Icon name="check" size={42} stroke={2.6} />
+        <div className="success-badge" aria-hidden="true">
+          <span className="success-badge__ring" />
+          {CONFETTI.map(([angle, color]) => (
+            <span
+              key={angle}
+              className="success-badge__dot"
+              style={{ '--a': `${angle}deg`, '--c': color } as CSSProperties}
+            />
+          ))}
+          <div className="success-badge__disc">
+            <svg className="success-badge__check" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12.5l4.5 4.5L19 7.5" />
+            </svg>
+          </div>
         </div>
         <h1 className="display" style={{ fontSize: 28, lineHeight: 1.15 }}>
           Tavolo saldato

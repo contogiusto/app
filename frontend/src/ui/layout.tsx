@@ -23,10 +23,10 @@ type HeadProps = {
 export function Head({ title, sub, right, onBack }: HeadProps) {
   return (
     <header
+      className="glass"
       style={{
         padding: '8px 22px 14px',
         borderBottom: '1px solid var(--border)',
-        background: 'var(--surface)',
       }}
     >
       {onBack && (
