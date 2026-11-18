@@ -59,7 +59,7 @@ cd backend && uv run python -m app.export_openapi && cd ../frontend && npm run a
 - Segreti solo da variabili d'ambiente (`.env.example` elenca quelle richieste); mai nel codice.
 - Auth staff: JWT HS256 (24h) da `POST /api/auth/login`. Le route protette usano le dipendenze di `app/deps.py` (`CurrentUser`, `AdminUser`, `require_roles(...)`); lettura menu pubblica, scrittura solo ADMIN.
 - `JWT_SECRET` va impostato su Vercel (Production e Preview, almeno 32 caratteri casuali): in produzione col valore di default login e token rispondono con errore.
-- Utenti staff: nessuna password predefinita. Si creano con `cd backend && uv run python -m app.cli create-user <username> <ADMIN|WAITER>` (con `DATABASE_URL` del DB di destinazione).
+- Utenti staff: nessuna password predefinita. Si creano con `cd backend && uv run python -m app.cli create-user <username> <ADMIN|WAITER>` (con `DATABASE_URL` del DB di destinazione). Altri comandi della CLI: `list-users` (id, username, ruolo; mai gli hash) e `reset-password <username>` (le password non si recuperano: sono hash argon2, si sostituiscono; minimo 12 caratteri, chieste in modo interattivo).
 - App a ristorante singolo per ora: menu e tavoli appartengono al primo `Restaurant` (creato al primo piatto o tavolo).
 - Il QR di un tavolo (`GET /api/tables/{id}/qr.svg`, solo ADMIN) codifica `FRONTEND_URL/table/<id>?token=<qr_token>`: `FRONTEND_URL` va impostato su Vercel con il dominio di produzione. Il `qr_token` non è mai nell'elenco tavoli.
 - Una sola sessione `OPEN` per tavolo: lo garantisce un indice unico parziale nel DB (le richieste concorrenti perdenti ricevono 409).
