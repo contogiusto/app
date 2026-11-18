@@ -22,10 +22,10 @@ export function Floor() {
   return (
     <div className={`waiter ${selected === null ? '' : 'waiter--detail'}`}>
       <nav className="waiter__rail" aria-label="Tavoli">
-        {tables.isPending && <p role="status" style={{ padding: 12, color: 'var(--ink-3)' }}>Caricamento…</p>}
+        {tables.isPending && <p role="status" style={{ padding: 12, color: 'var(--text-3)' }}>Caricamento…</p>}
         {tables.error && !tables.data && <ErrorNote error={tables.error} />}
         {tables.data?.length === 0 && (
-          <p style={{ padding: 12, color: 'var(--ink-3)', fontSize: 13.5 }}>
+          <p style={{ padding: 12, color: 'var(--text-3)', fontSize: 13.5 }}>
             Nessun tavolo: chiedi al ristoratore di crearli.
           </p>
         )}
@@ -44,7 +44,7 @@ export function Floor() {
         </Link>
         {tables.error && tables.data && <ErrorNote error={tables.error} />}
         {selected === null ? (
-          <p style={{ color: 'var(--ink-3)', padding: 24 }}>Scegli un tavolo dall’elenco.</p>
+          <p style={{ color: 'var(--text-3)', padding: 24 }}>Scegli un tavolo dall’elenco.</p>
         ) : table ? (
           <TableDetail key={table.id} table={table} />
         ) : (
@@ -80,8 +80,8 @@ function TableRow({ table, summary }: { table: StaffTable; summary?: OpenSession
           height: 38,
           borderRadius: 10,
           flexShrink: 0,
-          background: isOpen ? 'var(--accent-tint)' : 'rgba(34,28,21,.05)',
-          color: isOpen ? 'var(--accent-deep)' : 'var(--ink-3)',
+          background: isOpen ? 'var(--accent-tint)' : 'var(--wash-1)',
+          color: isOpen ? 'var(--accent-deep)' : 'var(--text-3)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -93,9 +93,9 @@ function TableRow({ table, summary }: { table: StaffTable; summary?: OpenSession
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13.5, fontWeight: 600 }}>Tavolo {table.number}</div>
-        <div style={{ fontSize: 11.5, color: isOpen ? 'var(--olive-deep)' : 'var(--ink-3)' }}>{detail}</div>
+        <div style={{ fontSize: 11.5, color: isOpen ? 'var(--ok-deep)' : 'var(--text-3)' }}>{detail}</div>
         {cash > 0 && (
-          <span className="chip chip--amber" style={{ fontSize: 11, padding: '2px 8px', marginTop: 4 }}>
+          <span className="chip chip--warn" style={{ fontSize: 11, padding: '2px 8px', marginTop: 4 }}>
             <Icon name="cash" size={12} /> {cashLabel(cash)}
           </span>
         )}
@@ -107,7 +107,7 @@ function TableRow({ table, summary }: { table: StaffTable; summary?: OpenSession
             width: 8,
             height: 8,
             borderRadius: '50%',
-            background: total > 0 && percent >= 100 ? 'var(--olive)' : 'var(--amber)',
+            background: total > 0 && percent >= 100 ? 'var(--ok)' : 'var(--warn)',
           }}
         />
       )}

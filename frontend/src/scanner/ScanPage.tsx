@@ -205,10 +205,10 @@ export default function ScanPage() {
 
   return (
     <div style={{ maxWidth: 480, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 18 }}>
-      <h1 className="serif" style={{ fontSize: 32, lineHeight: 1.05 }}>
+      <h1 className="display" style={{ fontSize: 26, lineHeight: 1.15 }}>
         Scansiona il QR
       </h1>
-      <p style={{ color: 'var(--ink-2)', fontSize: 15, lineHeight: 1.5 }}>
+      <p style={{ color: 'var(--text-2)', fontSize: 15, lineHeight: 1.5 }}>
         Inquadra il QR che trovi sul tavolo: tieni il telefono fermo, con tutto il codice nel
         riquadro. Quando viene riconosciuto si apre il tavolo.
       </p>
@@ -219,8 +219,8 @@ export default function ScanPage() {
           aspectRatio: '4 / 3',
           borderRadius: 'var(--r-md)',
           overflow: 'hidden',
-          background: 'var(--ink)',
-          border: '1px solid var(--line)',
+          background: 'var(--text)',
+          border: '1px solid var(--border)',
           display: status === 'scanning' || status === 'starting' ? 'block' : 'none',
         }}
       >
@@ -234,7 +234,7 @@ export default function ScanPage() {
       </div>
 
       {status === 'scanning' && (
-        <p role="status" style={{ fontSize: 14, color: 'var(--ink-2)' }}>
+        <p role="status" style={{ fontSize: 14, color: 'var(--text-2)' }}>
           Fotocamera attiva: cerco il QR…
         </p>
       )}
@@ -242,10 +242,10 @@ export default function ScanPage() {
         <div
           role={failed ? 'alert' : 'status'}
           className="card"
-          style={{ padding: 16, borderColor: failed ? 'var(--clay-deep)' : undefined }}
+          style={{ padding: 16, borderColor: failed ? 'var(--accent-deep)' : undefined }}
         >
           <h2 style={{ fontSize: 17, marginBottom: 4 }}>{message.title}</h2>
-          <p style={{ fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.5 }}>{message.body}</p>
+          <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.5 }}>{message.body}</p>
           {failed && status !== 'unsupported' && status !== 'insecure' && (
             <button
               type="button"
@@ -264,8 +264,8 @@ export default function ScanPage() {
           style={{
             padding: '10px 14px',
             borderRadius: 'var(--r-md)',
-            background: 'var(--clay-tint)',
-            color: 'var(--clay-deep)',
+            background: 'var(--danger-tint)',
+            color: 'var(--danger-deep)',
             fontSize: 14,
             fontWeight: 600,
           }}
@@ -295,7 +295,7 @@ export default function ScanPage() {
           }}
         />
         {pasteError && (
-          <p id="table-link-error" role="alert" style={{ color: 'var(--clay-deep)', fontSize: 14, fontWeight: 600 }}>
+          <p id="table-link-error" role="alert" style={{ color: 'var(--danger-deep)', fontSize: 14, fontWeight: 600 }}>
             Link non riconosciuto: incolla il link completo del tavolo, quello del QR.
           </p>
         )}

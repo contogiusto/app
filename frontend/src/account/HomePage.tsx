@@ -2,6 +2,7 @@ import { useState, type FormEvent, type InputHTMLAttributes, type KeyboardEvent 
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { Icon } from '../ui/Icon'
+import { Logo } from '../ui/Logo'
 import { useAccount } from './account'
 import './account.css'
 import { ErrorNote, GENERIC_ERROR, InfoNote } from './parts'
@@ -36,13 +37,14 @@ export default function HomePage() {
   }
 
   return (
-    <div className="paper-grain acc" style={{ height: '100%', overflow: 'auto' }}>
+    <div className="app-bg acc" style={{ height: '100%', overflow: 'auto' }}>
       <main style={{ maxWidth: 420, margin: '0 auto', padding: '40px 22px 32px' }}>
-        <span className="eyebrow">Il tuo account</span>
-        <h1 className="serif" style={{ fontSize: 52, lineHeight: 0.98, margin: '10px 0 12px' }}>
+        <Logo size={44} />
+        <span className="eyebrow" style={{ display: 'block', marginTop: 22 }}>Il tuo account</span>
+        <h1 className="display" style={{ fontSize: 34, lineHeight: 1.15, margin: '10px 0 12px' }}>
           Conto Giusto
         </h1>
-        <p style={{ color: 'var(--ink-2)', fontSize: 16, lineHeight: 1.45, marginBottom: 22 }}>
+        <p style={{ color: 'var(--text-2)', fontSize: 16, lineHeight: 1.45, marginBottom: 22 }}>
           Con un account ritrovi i tuoi pagamenti nello storico. Per pagare al tavolo, invece,
           l’account non serve: puoi sempre continuare come ospite.
         </p>
@@ -81,7 +83,7 @@ export default function HomePage() {
           )}
         </div>
 
-        <p style={{ marginTop: 28, fontSize: 14, color: 'var(--ink-2)' }}>
+        <p style={{ marginTop: 28, fontSize: 14, color: 'var(--text-2)' }}>
           Lavori in un locale?{' '}
           <Link to="/staff/login" style={{ fontWeight: 700 }}>
             Accesso staff
@@ -117,7 +119,7 @@ function Field({
         {...input}
       />
       {hint && (
-        <div id={`${id}-hint`} style={{ fontSize: 12.5, color: 'var(--ink-2)', marginTop: 5 }}>
+        <div id={`${id}-hint`} style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 5 }}>
           {hint}
         </div>
       )}

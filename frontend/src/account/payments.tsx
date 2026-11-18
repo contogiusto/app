@@ -10,14 +10,14 @@ const METHOD = { ONLINE: 'Online', CASH: 'Contanti' } as const
 export function StatusChip({ status }: { status: CustomerPayment['status'] }) {
   if (status === 'COMPLETED') {
     return (
-      <span className="chip chip--olive">
+      <span className="chip chip--ok">
         <Icon name="check" size={13} stroke={2.4} /> Pagato
       </span>
     )
   }
   if (status === 'CASH') {
     return (
-      <span className="chip chip--amber">
+      <span className="chip chip--warn">
         <Icon name="clock" size={13} /> Alla cassa, in attesa di conferma
       </span>
     )
@@ -36,7 +36,7 @@ export function PaymentCard({ payment }: { payment: CustomerPayment }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: 16 }}>{payment.restaurant_name}</div>
-          <div style={{ fontSize: 13, color: 'var(--ink-2)', marginTop: 3 }}>
+          <div style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 3 }}>
             <time dateTime={payment.created_at}>{formatDateTime(payment.created_at)}</time> · Tavolo{' '}
             {payment.table_number} · {METHOD[payment.method]}
           </div>
@@ -48,7 +48,7 @@ export function PaymentCard({ payment }: { payment: CustomerPayment }) {
       </div>
       {items.length > 0 && (
         <details style={{ marginTop: 12 }}>
-          <summary style={{ cursor: 'pointer', fontSize: 14, fontWeight: 600, color: 'var(--ink-2)' }}>
+          <summary style={{ cursor: 'pointer', fontSize: 14, fontWeight: 600, color: 'var(--text-2)' }}>
             {itemsLabel(payment.mode)}
           </summary>
           <ul style={{ margin: '8px 0 0', padding: 0 }}>
@@ -72,7 +72,7 @@ export function PaymentCard({ payment }: { payment: CustomerPayment }) {
             ))}
           </ul>
           {payment.mode === 'ROMANA' && (
-            <p style={{ fontSize: 12.5, color: 'var(--ink-2)', marginTop: 6 }}>
+            <p style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 6 }}>
               Hai pagato {formatMoney(parseMoney(payment.amount))}, una parte del totale del tavolo.
             </p>
           )}

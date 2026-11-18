@@ -35,14 +35,14 @@ export function OpenSessionPane({ table }: { table: StaffTable }) {
           <Icon name="table" size={30} />
         </div>
         <span className="eyebrow">Tavolo {table.number} · Libero</span>
-        <h2 className="serif" style={{ fontSize: 30, margin: '6px 0 8px' }}>
+        <h2 className="display" style={{ fontSize: 24, margin: '6px 0 8px' }}>
           Apri una sessione
         </h2>
-        <p style={{ color: 'var(--ink-2)', fontSize: 14.5, marginBottom: 26 }}>
+        <p style={{ color: 'var(--text-2)', fontSize: 14.5, marginBottom: 26 }}>
           Quanti coperti a questo tavolo? Serve per dividere il conto alla romana.
         </p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, marginBottom: 28 }}>
-          <span style={{ fontSize: 14, color: 'var(--ink-3)', fontWeight: 600 }}>Coperti</span>
+          <span style={{ fontSize: 14, color: 'var(--text-3)', fontWeight: 600 }}>Coperti</span>
           <Stepper value={coperti} min={1} max={100} label="coperti" onChange={setCoperti} />
         </div>
         <div style={{ marginBottom: 14 }}>

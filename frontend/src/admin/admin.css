@@ -35,18 +35,20 @@
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--ink-2);
+  color: var(--text-2);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
-.admin-nav a:hover {
-  background: rgba(34, 28, 21, 0.06);
+@media (hover: hover) and (pointer: fine) {
+  .admin-nav a:hover {
+    background: var(--wash-2);
+  }
 }
 .admin-nav a[aria-current='page'] {
-  background: var(--ink);
-  color: var(--paper-2);
+  background: var(--text);
+  color: var(--surface);
 }
 .admin-nav a:focus-visible {
   outline: 3px solid var(--accent-tint);

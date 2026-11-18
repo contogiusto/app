@@ -9,8 +9,8 @@ export function ErrorNote({ error }: { error: Error | null | undefined }) {
       style={{
         padding: '10px 14px',
         borderRadius: 'var(--r-md)',
-        background: 'var(--clay-tint)',
-        color: 'var(--clay-deep)',
+        background: 'var(--danger-tint)',
+        color: 'var(--danger-deep)',
         fontSize: 13.5,
         fontWeight: 600,
       }}

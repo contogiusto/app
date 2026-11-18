@@ -9,14 +9,14 @@ export default function HistoryPage() {
   const payments = usePayments()
   return (
     <div>
-      <h1 className="serif" style={{ fontSize: 40, lineHeight: 1, marginBottom: 6 }}>
+      <h1 className="display" style={{ fontSize: 28, lineHeight: 1.15, marginBottom: 6 }}>
         Storico
       </h1>
-      <p style={{ color: 'var(--ink-2)', fontSize: 14.5, marginBottom: 20 }}>
+      <p style={{ color: 'var(--text-2)', fontSize: 14.5, marginBottom: 20 }}>
         I pagamenti fatti al tavolo mentre eri collegato.
       </p>
 
-      {payments.isPending && <p role="status" style={{ color: 'var(--ink-2)' }}>Caricamento…</p>}
+      {payments.isPending && <p role="status" style={{ color: 'var(--text-2)' }}>Caricamento…</p>}
 
       {payments.isError && (
         <>
@@ -29,12 +29,12 @@ export default function HistoryPage() {
 
       {payments.isSuccess && payments.data.length === 0 && (
         <div className="card" style={{ padding: 24, textAlign: 'center' }}>
-          <Icon name="receipt" size={30} style={{ color: 'var(--ink-3)' }} />
-          <p style={{ margin: '10px 0 16px', color: 'var(--ink-2)', lineHeight: 1.5 }}>
+          <Icon name="receipt" size={30} style={{ color: 'var(--text-3)' }} />
+          <p style={{ margin: '10px 0 16px', color: 'var(--text-2)', lineHeight: 1.5 }}>
             Nessun pagamento, per ora. Scansiona il QR di un tavolo: i prossimi pagamenti
             compariranno qui.
           </p>
-          <Link to="/customer/scan" className="btn" style={{ color: '#fff', textDecoration: 'none' }}>
+          <Link to="/customer/scan" className="btn" style={{ color: 'var(--on-accent)', textDecoration: 'none' }}>
             <Icon name="qr" size={18} /> Scansiona il QR
           </Link>
         </div>

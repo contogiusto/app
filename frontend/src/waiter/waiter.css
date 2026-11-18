@@ -11,8 +11,8 @@
   flex-direction: column;
   gap: 7px;
   padding: 12px;
-  background: var(--paper-2);
-  border: 1px solid var(--line);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--r-lg);
 }
 
@@ -26,10 +26,12 @@
   color: inherit;
   text-decoration: none;
 }
-.waiter__row:hover { background: var(--paper-3); }
+.waiter__row { transition: background-color .16s var(--ease), border-color .16s var(--ease), transform .18s var(--ease); }
+.waiter__row:active { transform: scale(.985); }
+@media (hover: hover) and (pointer: fine) { .waiter__row:hover { background: var(--surface-2); } }
 .waiter__row[aria-current='page'] {
   border-color: var(--accent);
-  background: var(--paper-3);
+  background: var(--surface-2);
   box-shadow: var(--shadow-sm);
 }
 .waiter__row:focus-visible,
@@ -50,27 +52,29 @@
 .waiter__remove {
   border: none;
   background: transparent;
-  color: var(--ink-3);
+  color: var(--text-3);
   padding: 8px;
   display: flex;
   border-radius: 50%;
 }
-.waiter__remove:hover:not(:disabled) { color: var(--ink); background: rgba(34, 28, 21, 0.06); }
+@media (hover: hover) and (pointer: fine) {
+  .waiter__remove:hover:not(:disabled) { color: var(--text); background: var(--wash-2); }
+}
 .waiter__remove:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .waiter__overlay {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgba(34, 28, 21, 0.4);
+  background: var(--scrim);
   display: flex;
-  animation: flash-in 0.2s;
+  animation: fade-in 0.2s var(--ease);
 }
 .waiter__overlay--right { justify-content: flex-end; }
 .waiter__overlay--center { align-items: center; justify-content: center; padding: 20px; }
 
 .waiter__panel {
-  background: var(--paper-2);
+  background: var(--surface);
   box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
@@ -80,7 +84,7 @@
   width: 420px;
   max-width: 100%;
   height: 100%;
-  animation: slide-up 0.3s var(--ease);
+  animation: slide-in-right 0.34s cubic-bezier(.32, .72, 0, 1);
 }
 .waiter__overlay--center .waiter__panel {
   width: 440px;
@@ -98,4 +102,14 @@
   .waiter--detail .waiter__rail,
   .waiter:not(.waiter--detail) .waiter__detail { display: none; }
   .waiter__back { display: inline-flex; }
+}
+
+@media (max-width: 560px) {
+  .waiter__overlay--center { align-items: flex-end; padding: 0; }
+  .waiter__overlay--center .waiter__panel {
+    width: 100%; border-radius: var(--r-xl) var(--r-xl) 0 0;
+    padding: 22px 20px calc(22px + env(safe-area-inset-bottom));
+    animation: sheet-up .36s cubic-bezier(.32, .72, 0, 1);
+  }
+  .waiter__overlay--right .waiter__panel { width: 100%; }
 }

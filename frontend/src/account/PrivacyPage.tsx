@@ -11,10 +11,10 @@ const TBD = 'da indicare'
  */
 export default function PrivacyPage({ config = PRIVACY_CONFIG }: { config?: PrivacyConfig }) {
   return (
-    <div className="paper-grain acc" style={{ height: '100%', overflow: 'auto' }}>
+    <div className="app-bg acc" style={{ height: '100%', overflow: 'auto' }}>
       <main className="acc-prose" style={{ maxWidth: 680, margin: '0 auto', padding: '32px 22px 48px' }}>
         <Link to="/">← Torna all’accesso</Link>
-        <h1 className="serif" style={{ fontSize: 42, lineHeight: 1, margin: '18px 0 8px' }}>
+        <h1 className="display" style={{ fontSize: 30, lineHeight: 1.15, margin: '18px 0 8px' }}>
           Informativa sulla privacy
         </h1>
         <p>

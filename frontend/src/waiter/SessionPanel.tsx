@@ -56,9 +56,9 @@ export function SessionPanel({ sessionId, table, onLeave }: Props) {
       <div
         style={{
           padding: '18px 22px',
-          border: '1px solid var(--line)',
+          border: '1px solid var(--border)',
           borderRadius: 'var(--r-lg)',
-          background: 'var(--paper-2)',
+          background: 'var(--surface)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -69,16 +69,16 @@ export function SessionPanel({ sessionId, table, onLeave }: Props) {
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <h2 className="serif" style={{ fontSize: 30 }}>
+            <h2 className="display" style={{ fontSize: 24 }}>
               Tavolo {table.number}
             </h2>
-            <span className={`chip ${closed ? 'chip--ink' : 'chip--olive'}`}>
+            <span className={`chip ${closed ? 'chip--text' : 'chip--ok'}`}>
               <span className="dot" />
               {closed ? 'Chiusa' : 'Aperta'}
             </span>
             <span className="chip">{modeLabel(mode)}</span>
           </div>
-          <div style={{ display: 'flex', gap: 16, marginTop: 7, fontSize: 13, color: 'var(--ink-3)' }}>
+          <div style={{ display: 'flex', gap: 16, marginTop: 7, fontSize: 13, color: 'var(--text-3)' }}>
             <span>{coperti} coperti</span>
             <span>
               Totale <Money cents={totalCents} />
@@ -117,7 +117,7 @@ export function SessionPanel({ sessionId, table, onLeave }: Props) {
       <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
         <ErrorNote error={remove.error ?? confirm.error ?? orders.error ?? payments.error} />
         {hasPayments && !closed && (
-          <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{LOCKED_BY_PAYMENTS}</p>
+          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>{LOCKED_BY_PAYMENTS}</p>
         )}
       </div>
 
@@ -125,14 +125,14 @@ export function SessionPanel({ sessionId, table, onLeave }: Props) {
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <h3 style={{ fontSize: 15 }}>Comanda</h3>
-            <span style={{ fontSize: 12.5, color: 'var(--ink-3)' }} className="tnum">
+            <span style={{ fontSize: 12.5, color: 'var(--text-3)' }} className="tnum">
               {dishes} {dishes === 1 ? 'piatto' : 'piatti'}
             </span>
           </div>
           <div className="card" style={{ overflow: 'hidden' }}>
-            {orders.isPending && <p role="status" style={{ padding: 24, textAlign: 'center', color: 'var(--ink-3)' }}>Caricamento…</p>}
+            {orders.isPending && <p role="status" style={{ padding: 24, textAlign: 'center', color: 'var(--text-3)' }}>Caricamento…</p>}
             {orders.data && items.length === 0 && (
-              <p style={{ padding: 24, textAlign: 'center', color: 'var(--ink-3)', fontSize: 13.5 }}>
+              <p style={{ padding: 24, textAlign: 'center', color: 'var(--text-3)', fontSize: 13.5 }}>
                 Nessun piatto. Aggiungi dalla comanda.
               </p>
             )}
@@ -146,7 +146,7 @@ export function SessionPanel({ sessionId, table, onLeave }: Props) {
                       alignItems: 'center',
                       gap: 12,
                       padding: '11px 14px',
-                      borderTop: i ? '1px solid var(--line)' : 'none',
+                      borderTop: i ? '1px solid var(--border)' : 'none',
                     }}
                   >
                     <span className="tnum" style={{ fontWeight: 700, color: 'var(--accent)', minWidth: 26 }}>
@@ -154,11 +154,11 @@ export function SessionPanel({ sessionId, table, onLeave }: Props) {
                     </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14 }}>{item.name}</div>
-                      <div style={{ fontSize: 11.5, color: 'var(--ink-3)' }}>
+                      <div style={{ fontSize: 11.5, color: 'var(--text-3)' }}>
                         <Money cents={parseMoney(item.unit_price)} /> cad.
                       </div>
                     </div>
-                    <Money cents={parseMoney(item.line_total)} style={{ fontSize: 13.5, color: 'var(--ink-2)' }} />
+                    <Money cents={parseMoney(item.line_total)} style={{ fontSize: 13.5, color: 'var(--text-2)' }} />
                     {!closed && (
                       <button
                         type="button"
@@ -180,8 +180,8 @@ export function SessionPanel({ sessionId, table, onLeave }: Props) {
                   display: 'flex',
                   justifyContent: 'space-between',
                   padding: '12px 14px',
-                  borderTop: '1.5px solid var(--line-2)',
-                  background: 'var(--paper-3)',
+                  borderTop: '1.5px solid var(--border-strong)',
+                  background: 'var(--surface-2)',
                   fontWeight: 700,
                 }}
               >
@@ -195,7 +195,7 @@ export function SessionPanel({ sessionId, table, onLeave }: Props) {
         <div>
           <h3 style={{ fontSize: 15, marginBottom: 12 }}>Pagamenti</h3>
           {payments.data && !hasPayments && (
-            <p className="card" style={{ padding: 22, textAlign: 'center', color: 'var(--ink-3)', fontSize: 13.5 }}>
+            <p className="card" style={{ padding: 22, textAlign: 'center', color: 'var(--text-3)', fontSize: 13.5 }}>
               Ancora nessun pagamento.
             </p>
           )}
@@ -245,7 +245,7 @@ function BillStrip({ totalCents, paidCents, remainingCents, payments, coperti, m
       aria-label="Conto"
       style={{
         padding: '14px 22px',
-        border: '1px solid var(--line)',
+        border: '1px solid var(--border)',
         borderRadius: 'var(--r-lg)',
         marginBottom: 14,
         display: 'grid',
@@ -253,17 +253,17 @@ function BillStrip({ totalCents, paidCents, remainingCents, payments, coperti, m
       }}
     >
       <Progress value={paidRatio(paidCents, totalCents)} label="Conto pagato" />
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 22px', fontSize: 13, color: 'var(--ink-2)' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 22px', fontSize: 13, color: 'var(--text-2)' }}>
         <div>
-          <span style={{ color: 'var(--ink-3)' }}>Totale </span>
+          <span style={{ color: 'var(--text-3)' }}>Totale </span>
           <Money cents={totalCents} style={{ fontWeight: 700 }} />
         </div>
         <div>
-          <span style={{ color: 'var(--ink-3)' }}>Pagato </span>
+          <span style={{ color: 'var(--text-3)' }}>Pagato </span>
           <Money cents={paidCents} style={{ fontWeight: 700 }} />
         </div>
         <div>
-          <span style={{ color: 'var(--ink-3)' }}>Residuo </span>
+          <span style={{ color: 'var(--text-3)' }}>Residuo </span>
           <Money cents={remainingCents} style={{ fontWeight: 700 }} />
         </div>
         {mode === 'ROMANA' && (
@@ -272,7 +272,7 @@ function BillStrip({ totalCents, paidCents, remainingCents, payments, coperti, m
           </span>
         )}
         {toConfirm > 0 && (
-          <span className="chip chip--amber" style={{ padding: '2px 9px' }}>
+          <span className="chip chip--warn" style={{ padding: '2px 9px' }}>
             {toConfirm} {toConfirm === 1 ? 'contante' : 'contanti'} da confermare
           </span>
         )}
@@ -296,26 +296,26 @@ function PaymentRow({
       <Initial name={payment.customer_nickname} size={36} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13.5, fontWeight: 600, overflowWrap: 'anywhere' }}>{payment.customer_nickname}</div>
-        <div style={{ fontSize: 11.5, color: 'var(--ink-3)', display: 'flex', alignItems: 'center', gap: 5 }}>
+        <div style={{ fontSize: 11.5, color: 'var(--text-3)', display: 'flex', alignItems: 'center', gap: 5 }}>
           <Icon name={online ? 'card' : 'cash'} size={12} />
           {online ? 'Online' : 'Alla cassa'}
         </div>
       </div>
       <Money cents={parseMoney(payment.amount)} style={{ fontWeight: 700, fontSize: 14 }} />
       {payment.status === 'COMPLETED' && (
-        <span className="chip chip--olive" style={{ fontSize: 11 }}>
+        <span className="chip chip--ok" style={{ fontSize: 11 }}>
           <Icon name="check" size={12} /> Incassato
         </span>
       )}
       {payment.status === 'PENDING' && (
-        <span className="chip chip--amber" style={{ fontSize: 11 }}>
+        <span className="chip chip--warn" style={{ fontSize: 11 }}>
           <Icon name="clock" size={12} /> In attesa
         </span>
       )}
       {payment.status === 'CASH' && (
         <button
           type="button"
-          className="btn btn--olive"
+          className="btn btn--ok"
           style={{ padding: '8px 13px', fontSize: 13 }}
           aria-label={`Conferma contanti di ${payment.customer_nickname}`}
           disabled={busy}

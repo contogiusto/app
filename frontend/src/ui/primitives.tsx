@@ -1,13 +1,47 @@
-import type { CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { formatMoney } from '../lib/money'
 import { initialsOf } from '../lib/names'
 import { Icon } from './Icon'
 
-/** Importo in centesimi, con cifre di larghezza fissa per non far "ballare" gli elenchi. */
-export function Money({ cents, style }: { cents: number; style?: CSSProperties }) {
+const REDUCED = '(prefers-reduced-motion: reduce)'
+
+/** Porta un numero verso `target` con un'interpolazione ease-out; nei test e con movimento ridotto salta subito. */
+function useTween(target: number, enabled: boolean, ms = 450) {
+  const [value, setValue] = useState(target)
+  const from = useRef(target)
+  useEffect(() => {
+    const skip =
+      !enabled ||
+      import.meta.env.MODE === 'test' ||
+      (typeof window.matchMedia === 'function' && window.matchMedia(REDUCED).matches)
+    if (skip || from.current === target) {
+      from.current = target
+      setValue(target)
+      return
+    }
+    const start = from.current
+    const t0 = performance.now()
+    let frame = 0
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - t0) / ms)
+      const eased = 1 - Math.pow(1 - t, 4)
+      const current = start + (target - start) * eased
+      from.current = current
+      setValue(current)
+      if (t < 1) frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [target, enabled, ms])
+  return Math.round(value)
+}
+
+/** Importo in centesimi, con cifre di larghezza fissa per non far "ballare" gli elenchi. Con `animate` conta fino al nuovo valore. */
+export function Money({ cents, style, animate = false }: { cents: number; style?: CSSProperties; animate?: boolean }) {
+  const shown = useTween(cents, animate)
   return (
     <span className="tnum" style={style}>
-      {formatMoney(cents)}
+      {formatMoney(shown)}
     </span>
   )
 }
@@ -22,13 +56,13 @@ export function Progress({ value, label }: { value: number; label?: string }) {
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(clamped * 100)}
-      style={{ height: 8, borderRadius: 99, background: 'rgba(34,28,21,.08)', overflow: 'hidden' }}
+      style={{ height: 8, borderRadius: 99, background: 'var(--wash-2)', overflow: 'hidden' }}
     >
       <div
         style={{
           height: '100%',
           width: `${Math.round(clamped * 100)}%`,
-          background: 'var(--olive)',
+          background: 'var(--ok)',
           borderRadius: 99,
           transition: 'width .6s var(--ease)',
         }}
@@ -38,12 +72,12 @@ export function Progress({ value, label }: { value: number; label?: string }) {
 }
 
 const AVATAR_COLORS = [
-  ['#C0492F', '#F3DDD3'],
-  ['#5E6B47', '#E2E6D7'],
-  ['#6B3B57', '#EBDBE4'],
-  ['#2E6081', '#D7E6F0'],
-  ['#9C6311', '#F6E9CC'],
-  ['#4A5240', '#E1E4DC'],
+  ['var(--cat-1)', 'var(--cat-1-tint)'],
+  ['var(--cat-2)', 'var(--cat-2-tint)'],
+  ['var(--cat-3)', 'var(--cat-3-tint)'],
+  ['var(--cat-4)', 'var(--cat-4-tint)'],
+  ['var(--cat-5)', 'var(--cat-5-tint)'],
+  ['var(--cat-6)', 'var(--cat-6-tint)'],
 ] as const
 
 function colorsFor(name: string) {
@@ -79,12 +113,12 @@ export function Initial({ name, size = 36 }: { name: string; size?: number }) {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Antipasti: 'var(--clay)',
-  Primi: 'var(--amber)',
-  Secondi: 'var(--plum)',
-  Contorni: 'var(--olive)',
-  Dolci: '#C77DA0',
-  Bevande: 'var(--clay-deep)',
+  Antipasti: 'var(--cat-1)',
+  Primi: 'var(--cat-2)',
+  Secondi: 'var(--cat-3)',
+  Contorni: 'var(--cat-4)',
+  Dolci: 'var(--cat-5)',
+  Bevande: 'var(--cat-6)',
 }
 
 export function CategoryDot({ category, size = 8 }: { category?: string; size?: number }) {
@@ -95,7 +129,7 @@ export function CategoryDot({ category, size = 8 }: { category?: string; size?: 
         width: size,
         height: size,
         borderRadius: '50%',
-        background: (category && CATEGORY_COLORS[category]) || 'var(--ink-3)',
+        background: (category && CATEGORY_COLORS[category]) || 'var(--text-3)',
         flexShrink: 0,
       }}
     />
@@ -122,9 +156,9 @@ export function Stepper({ value, onChange, min = 0, max = 99, label }: StepperPr
         width: 34,
         height: 34,
         borderRadius: '50%',
-        border: '1.5px solid var(--line-2)',
-        background: 'var(--paper-3)',
-        color: disabled ? 'var(--ink-3)' : 'var(--ink)',
+        border: '1.5px solid var(--border-strong)',
+        background: 'var(--surface-2)',
+        color: disabled ? 'var(--text-3)' : 'var(--text)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

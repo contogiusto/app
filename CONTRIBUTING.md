@@ -8,7 +8,8 @@
 5. Merge con **squash**; il branch viene cancellato.
 
 ## Con Claude Code
-- `/new-feature <descrizione>` crea il branch e imposta il lavoro; `/ship` verifica, pusha e apre la PR.
+Il ciclo completo (intent → design → build → verify → review → ship) è in [docs/sdlc.md](docs/sdlc.md).
+- `/intent <idea>` scrive l'intent; `/design NNNN` il design con il piano a task; `/new-feature NNNN` crea il branch e costruisce; `/ship` verifica, pusha e apre la PR.
 - Prima di aprire la PR esegui `/code-review` sul branch. Non ci sono workflow Claude su GitHub (nessuna API key): se servono in futuro, usa `anthropics/claude-code-action`.
 
 ## Setup locale

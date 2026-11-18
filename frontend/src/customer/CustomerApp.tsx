@@ -211,6 +211,7 @@ export function CustomerApp() {
 
   return (
     <Shell>
+      <div key={current} className="step">
       {current === 'choice' && (
         <EntryChoice
           restaurantName={table.restaurant_name}
@@ -268,6 +269,7 @@ export function CustomerApp() {
             onPay={submit}
           />
         ))}
+      </div>
     </Shell>
   )
 }
