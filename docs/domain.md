@@ -4,7 +4,7 @@ Il dominio dell'app com'è oggi. Se cambia una regola, si aggiorna prima questo 
 
 ## Ruoli
 - **Admin centrale** (`SUPERADMIN`): gestisce i ristoranti e gli utenti admin di ciascuno; non vede menu, tavoli né conti dei locali (interfaccia: fase 3b, oggi solo CLI).
-- **Ristoratore** (`/admin`, `ADMIN` di un ristorante): CRUD menu (nome, prezzo, categoria, disponibilità); gestione tavoli e QR; in futuro gli utenti del proprio locale (fase 3c).
+- **Ristoratore** (`/admin`, `ADMIN` di un ristorante): CRUD menu (nome, prezzo, categoria, disponibilità); gestione tavoli e QR; gestisce gli utenti del proprio locale (altri admin e camerieri, con password provvisoria da cambiare al primo accesso).
 - **Cameriere** (`/waiter`): apre la sessione di un tavolo indicando i **coperti**, aggiunge ordini, conferma pagamenti in contanti, può chiudere forzatamente la sessione.
 - **Cliente** (`/table/:tableId?token=...`): accede dal QR (anche senza account), vede ordini in tempo reale, paga la propria quota. Può avere un account (`/customer/*`) per lo storico dei pagamenti.
 

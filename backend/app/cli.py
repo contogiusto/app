@@ -17,6 +17,7 @@ import argparse
 import getpass
 import sys
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -169,6 +170,7 @@ def reset_password(db: Session, username: str, password: str, slug: str | None =
     else:
         user = _find_user(db, username, slug)
     user.password_hash = hash_password(password)
+    user.password_changed_at = datetime.now(UTC)  # i suoi token attuali non valgono più
     db.flush()
     return user
 

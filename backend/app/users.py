@@ -4,11 +4,13 @@ Usata dall'admin centrale (`/api/platform`) e dall'admin del ristorante (`/api/u
 sono le stesse, cambia solo chi può farlo. Gli errori sono `DomainError` (404/409/422).
 """
 
+from datetime import UTC, datetime
+
 from sqlalchemy import exists, func, select
 from sqlalchemy.orm import Session
 
 from app.errors import Conflict, Invalid, NotFound
-from app.models import AppUser, OrderItem, UserRole
+from app.models import AppUser, OrderItem, Restaurant, UserRole
 from app.security import hash_password
 
 MIN_PASSWORD_LENGTH = 12
@@ -71,6 +73,8 @@ def crea_utente(
 def _e_ultimo_admin_attivo(db: Session, user: AppUser) -> bool:
     if user.role != UserRole.ADMIN or not user.active:
         return False
+    # Due admin che si tolgono a vicenda nello stesso istante: si serializza sul ristorante.
+    db.execute(select(Restaurant.id).where(Restaurant.id == user.restaurant_id).with_for_update())
     altri = db.scalar(
         select(func.count()).where(
             AppUser.restaurant_id == user.restaurant_id,
@@ -108,6 +112,7 @@ def reimposta_password(db: Session, user: AppUser, password: str) -> AppUser:
     _controlla_password(password)
     user.password_hash = hash_password(password)
     user.must_change_password = True
+    user.password_changed_at = datetime.now(UTC)  # i suoi token attuali non valgono più
     db.flush()
     return user
 

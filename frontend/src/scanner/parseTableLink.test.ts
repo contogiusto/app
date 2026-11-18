@@ -83,3 +83,31 @@ describe('link rifiutati', () => {
     expect(parseTableLink('javascript:alert(1)', 'null')).toBeNull()
   })
 })
+
+describe('indirizzo del ristorante', () => {
+  it('slug di 41 caratteri rifiutato', () => {
+    const slug = 'a'.repeat(41)
+    expect(parse(`https://app.example.com/ristorante/${slug}/tavolo/1?token=x`)).toBeNull()
+  })
+
+  it('accetta il link del tavolo dentro il ristorante', () => {
+    expect(parse('https://app.example.com/ristorante/da-gino/tavolo/12?token=abc')).toBe(
+      '/ristorante/da-gino/tavolo/12?token=abc',
+    )
+  })
+
+  it('rifiuta slug non validi e percorsi estranei', () => {
+    const bad = [
+      'https://app.example.com/ristorante/Da-Gino/tavolo/1?token=x',
+      'https://app.example.com/ristorante/ab/tavolo/1?token=x',
+      'https://app.example.com/ristorante/-gino/tavolo/1?token=x',
+      'https://app.example.com/ristorante/da--gino/tavolo/1?token=x',
+      'https://app.example.com/ristorante/da-gino/tavolo/0?token=x',
+      'https://app.example.com/ristorante/da-gino/tavolo/1/extra?token=x',
+      'https://app.example.com/ristorante/da-gino/admin?token=x',
+      'https://app.example.com/ristorante/da-gino/tavolo/1',
+      'https://evil.example.com/ristorante/da-gino/tavolo/1?token=x',
+    ]
+    for (const text of bad) expect(parse(text), text).toBeNull()
+  })
+})

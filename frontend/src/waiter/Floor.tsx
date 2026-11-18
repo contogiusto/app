@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink, useParams } from 'react-router-dom'
+import { useStaffBase } from '../staff/paths'
 import type { OpenSession, StaffTable } from '../api/client'
 import { parseMoney } from '../lib/money'
 import { Icon } from '../ui/Icon'
@@ -12,6 +13,7 @@ import { SessionPanel } from './SessionPanel'
 
 /** La sala: elenco dei tavoli a sinistra e, a destra, il tavolo scelto. */
 export function Floor() {
+  const base = useStaffBase()
   const tableId = /^table\/(\d+)$/.exec(useParams()['*'] ?? '')?.[1]
   const tables = useTables()
   const open = useOpenSessions()
@@ -36,7 +38,7 @@ export function Floor() {
 
       <section className="waiter__detail" aria-label="Dettaglio del tavolo" style={{ minWidth: 0 }}>
         <Link
-          to="/waiter"
+          to={`${base}/waiter`}
           className="btn btn--ghost waiter__back"
           style={{ padding: '8px 14px', fontSize: 13, marginBottom: 14 }}
         >
@@ -58,6 +60,7 @@ export function Floor() {
 }
 
 function TableRow({ table, summary }: { table: StaffTable; summary?: OpenSession }) {
+  const base = useStaffBase()
   const isOpen = table.open_session_id !== null
   const total = summary ? parseMoney(summary.total) : 0
   const percent = summary ? Math.round(paidRatio(parseMoney(summary.paid_total), total) * 100) : 0
@@ -72,7 +75,7 @@ function TableRow({ table, summary }: { table: StaffTable; summary?: OpenSession
     .join(', ')
 
   return (
-    <NavLink to={`/waiter/table/${table.id}`} className="waiter__row" aria-label={label}>
+    <NavLink to={`${base}/waiter/table/${table.id}`} className="waiter__row" aria-label={label}>
       <div
         className="tnum"
         style={{

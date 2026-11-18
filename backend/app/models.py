@@ -82,6 +82,8 @@ class AppUser(Base):
     active: Mapped[bool] = mapped_column(default=True, server_default=true())
     # La password provvisoria la imposta chi crea l'utenza: al primo accesso va cambiata.
     must_change_password: Mapped[bool] = mapped_column(default=False, server_default=false())
+    # I token emessi prima di questo istante non valgono più (cambio o reimpostazione password).
+    password_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Customer(Base):

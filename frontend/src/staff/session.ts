@@ -7,7 +7,15 @@
 
 import type { UserRole } from '../api/client'
 
-export type StaffSession = { token: string; role: UserRole; username: string }
+export type StaffSession = {
+  token: string
+  role: UserRole
+  username: string
+  /** Slug del ristorante (assente per l'admin centrale e per le sessioni salvate prima). */
+  restaurant?: string | null
+  /** Password provvisoria: va cambiata prima di fare altro. */
+  mustChangePassword?: boolean
+}
 
 const KEY = 'cg:staff'
 

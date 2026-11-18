@@ -7,9 +7,11 @@ import { RequireCustomer } from './account/RequireCustomer'
 import AdminApp from './admin/AdminApp'
 import { CustomerApp } from './customer/CustomerApp'
 import PlatformApp from './platform/PlatformApp'
+import RestaurantHome from './restaurant/RestaurantHome'
 import { AuthProvider } from './staff/AuthProvider'
 import LoginScreen from './staff/LoginScreen'
-import { RequireRole } from './staff/RequireRole'
+import ChangePasswordScreen from './staff/ChangePasswordScreen'
+import { RequireRole, RequireSession } from './staff/RequireRole'
 import WaiterApp from './waiter/WaiterApp'
 
 function Message({ title, children }: { title: string; children?: string }) {
@@ -59,8 +61,30 @@ function AppRoutes() {
           </RequireCustomer>
         }
       />
+      {/* Un ristorante ha il suo indirizzo: pagina pubblica, accesso staff, tavolo (dal QR). */}
+      <Route path="/ristorante/:slug" element={<RestaurantHome />} />
+      <Route path="/ristorante/:slug/accesso" element={<LoginScreen />} />
+      <Route path="/ristorante/:slug/tavolo/:tableId" element={<CustomerApp />} />
+      <Route
+        path="/ristorante/:slug/waiter/*"
+        element={
+          <RequireRole roles={['WAITER', 'ADMIN']}>
+            <WaiterApp />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/ristorante/:slug/admin/*"
+        element={
+          <RequireRole roles={['ADMIN']}>
+            <AdminApp />
+          </RequireRole>
+        }
+      />
+      {/* Vecchi indirizzi (QR già stampati, segnalibri): portano al ristorante giusto. */}
       <Route path="/table/:tableId" element={<CustomerApp />} />
       <Route path="/staff/login" element={<LoginScreen />} />
+      <Route path="/cambio-password" element={<RequireSession><ChangePasswordScreen /></RequireSession>} />
       {/* Le sotto-rotte di /waiter e /admin le definiscono WaiterApp e AdminApp (path relativi). */}
       <Route
         path="/waiter/*"

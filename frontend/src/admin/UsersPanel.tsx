@@ -29,16 +29,20 @@ type Dialog =
 /**
  * Elenco e gestione degli utenti di un ristorante: crea (con password provvisoria da cambiare al
  * primo accesso), attiva/disattiva, cambia ruolo, reimposta la password, elimina.
- * `selfId` è l'utente collegato (non può disattivarsi né eliminarsi da qui).
+ * `selfUsername` è l'utente collegato (non può disattivarsi né eliminarsi da qui).
  */
 export function UsersPanel({
   queryKey,
   api,
-  selfId = null,
+  selfUsername = null,
+  hideTitle = false,
 }: {
   queryKey: readonly unknown[]
   api: UsersApi
-  selfId?: number | null
+  /** Nome dell'utente collegato: non può disattivarsi, cambiarsi ruolo né eliminarsi da qui. */
+  selfUsername?: string | null
+  /** Se la pagina ha già il suo titolo. */
+  hideTitle?: boolean
 }) {
   const client = useQueryClient()
   const users = useQuery({ queryKey, queryFn: api.list })
@@ -57,9 +61,11 @@ export function UsersPanel({
   return (
     <section aria-label="Utenti">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 14 }}>
-        <h3 className="display" style={{ fontSize: 20 }}>
-          Utenti
-        </h3>
+        {hideTitle ? <span /> : (
+          <h3 className="display" style={{ fontSize: 20 }}>
+            Utenti
+          </h3>
+        )}
         <button type="button" className="btn" onClick={() => setDialog({ kind: 'create' })}>
           <Icon name="plus" size={17} /> Nuovo utente
         </button>
@@ -76,7 +82,7 @@ export function UsersPanel({
       ) : (
         <ul className="card" style={{ overflow: 'hidden', listStyle: 'none', margin: 0, padding: 0 }}>
           {users.data.map((user, index) => {
-            const isSelf = user.id === selfId
+            const isSelf = user.username === selfUsername
             return (
               <li
                 key={user.id}

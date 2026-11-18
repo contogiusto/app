@@ -1,4 +1,5 @@
 import hashlib
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException, Request, status
 from sqlalchemy import select
@@ -7,9 +8,10 @@ from sqlalchemy.orm import Session
 from app import ratelimit
 from app.config import settings
 from app.deps import CurrentUser, DbSession
+from app.errors import Invalid
 from app.models import AppUser, Restaurant, UserRole
-from app.schemas import LoginRequest, TokenResponse, UserOut
-from app.security import create_access_token, verify_password
+from app.schemas import ChangePasswordIn, LoginRequest, TokenResponse, UserOut
+from app.security import create_access_token, hash_password, verify_password
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -53,6 +55,12 @@ def _trova_utente(db: Session, username: str, slug: str | None) -> AppUser | Non
     return user
 
 
+def _slug_di(db: Session, user: AppUser) -> str | None:
+    if user.restaurant_id is None:
+        return None
+    return db.get(Restaurant, user.restaurant_id).slug
+
+
 @router.post("/login")
 def login(data: LoginRequest, request: Request, db: DbSession) -> TokenResponse:
     # Si contano solo i tentativi falliti, per IP e per username: chi accede correttamente
@@ -74,9 +82,42 @@ def login(data: LoginRequest, request: Request, db: DbSession) -> TokenResponse:
         for chiave, massimo in (per_ip, per_utente):
             ratelimit.colpisci(chiave, massimo, finestra)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Credenziali non valide")
-    return TokenResponse(access_token=create_access_token(user), role=user.role)
+    return TokenResponse(
+        access_token=create_access_token(user),
+        role=user.role,
+        must_change_password=user.must_change_password,
+        restaurant_slug=_slug_di(db, user),
+    )
 
 
 @router.get("/me")
-def me(user: CurrentUser) -> UserOut:
-    return UserOut.model_validate(user)
+def me(user: CurrentUser, db: DbSession) -> UserOut:
+    out = UserOut.model_validate(user)
+    out.restaurant_slug = _slug_di(db, user)
+    return out
+
+
+@router.post("/change-password")
+def cambia_password(data: ChangePasswordIn, user: CurrentUser, db: DbSession) -> TokenResponse:
+    """Cambio della propria password (chiede quella attuale). Toglie l'obbligo di cambiarla.
+
+    I token emessi prima non valgono più: si risponde con un token nuovo per questa sessione."""
+    chiave = f"change-pw:{user.id}"
+    ratelimit.verifica(chiave, settings.rate_limit_login_user_max, settings.rate_limit_login_window)
+    if not verify_password(data.current_password, user.password_hash):
+        ratelimit.colpisci(
+            chiave, settings.rate_limit_login_user_max, settings.rate_limit_login_window
+        )
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "La password attuale non è corretta")
+    if data.new_password == data.current_password:
+        raise Invalid("La nuova password dev'essere diversa da quella attuale")
+    user.password_hash = hash_password(data.new_password)
+    user.must_change_password = False
+    user.password_changed_at = datetime.now(UTC)
+    db.commit()
+    return TokenResponse(
+        access_token=create_access_token(user),
+        role=user.role,
+        must_change_password=False,
+        restaurant_slug=_slug_di(db, user),
+    )

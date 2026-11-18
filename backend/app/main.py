@@ -15,6 +15,7 @@ from app.routers import (
     platform,
     public,
     sessions,
+    staff_users,
     tables,
 )
 
@@ -29,6 +30,7 @@ app.include_router(sessions.router)
 app.include_router(orders.router)
 app.include_router(payments.router)
 app.include_router(platform.router)
+app.include_router(staff_users.router)
 app.include_router(public.router)
 app.include_router(public.restaurants_router)
 register_error_handlers(app)

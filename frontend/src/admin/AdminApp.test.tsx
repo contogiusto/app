@@ -43,6 +43,7 @@ function renderAt(path: string) {
     session: { token: 't', role: 'ADMIN' as const, username: 'admin' },
     notice: null,
     login: vi.fn(),
+    changePassword: vi.fn(),
     logout: vi.fn(),
   }
   return render(

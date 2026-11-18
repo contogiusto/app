@@ -8,9 +8,13 @@
 const MAX_TOKEN_LENGTH = 512
 const MAX_ID_DIGITS = 9
 
+// Lo slug di un ristorante: come lo valida il server (3-40 caratteri, minuscole, numeri, trattini).
+const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
 /**
- * Se `text` è un link `<origine dell'app>/table/<id>?token=<token>` dà il percorso da aprire con
- * il router (`/table/<id>?token=<token>`), altrimenti `null`. Niente altro viene mai accettato.
+ * Se `text` è un link di un tavolo di questa app dà il percorso da aprire con il router, altrimenti
+ * `null`. Forme accettate (e nient'altro): `<origine>/ristorante/<slug>/tavolo/<id>?token=<token>`
+ * e il vecchio `<origine>/table/<id>?token=<token>` dei QR già stampati.
  */
 export function parseTableLink(text: string, appOrigin: string): string | null {
   let url: URL
@@ -24,13 +28,18 @@ export function parseTableLink(text: string, appOrigin: string): string | null {
   if (url.origin !== appOrigin || appOrigin === 'null') return null
   if (url.username !== '' || url.password !== '') return null
 
-  const match = /^\/table\/([0-9]+)$/.exec(url.pathname)
-  if (!match || match[1].length > MAX_ID_DIGITS) return null
-  const tableId = Number(match[1])
+  const scoped = /^\/ristorante\/([a-z0-9-]+)\/tavolo\/([0-9]+)$/.exec(url.pathname)
+  const legacy = /^\/table\/([0-9]+)$/.exec(url.pathname)
+  const slug = scoped ? scoped[1] : null
+  const id = scoped ? scoped[2] : legacy ? legacy[1] : null
+  if (id === null || id.length > MAX_ID_DIGITS) return null
+  if (slug !== null && !(slug.length >= 3 && slug.length <= 40 && SLUG.test(slug))) return null
+  const tableId = Number(id)
   if (tableId < 1) return null
 
   const token = url.searchParams.get('token')
   if (!token || token.trim() === '' || token.length > MAX_TOKEN_LENGTH) return null
 
-  return `/table/${tableId}?token=${encodeURIComponent(token)}`
+  const query = `?token=${encodeURIComponent(token)}`
+  return slug === null ? `/table/${tableId}${query}` : `/ristorante/${slug}/tavolo/${tableId}${query}`
 }

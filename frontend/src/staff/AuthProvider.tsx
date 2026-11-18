@@ -22,14 +22,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setNotice(reason ?? null)
   }, [])
 
-  const login = useCallback(async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string, restaurant?: string) => {
     const name = username.trim()
-    const result = await api.login(name, password)
-    const next: StaffSession = { token: result.access_token, role: result.role, username: name }
+    const result = restaurant
+      ? await api.login(name, password, restaurant)
+      : await api.login(name, password)
+    const next: StaffSession = {
+      token: result.access_token,
+      role: result.role,
+      username: name,
+      restaurant: result.restaurant_slug ?? null,
+      mustChangePassword: result.must_change_password,
+    }
     saveStaffSession(next)
     setSession(next)
     setNotice(null)
     return next
+  }, [])
+
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    // Il server revoca i token precedenti e ne dà uno nuovo per questa sessione.
+    const result = await api.changePassword(currentPassword, newPassword)
+    setSession((current) => {
+      if (current === null) return current
+      const next = { ...current, token: result.access_token, mustChangePassword: false }
+      saveStaffSession(next)
+      return next
+    })
+  }, [])
+
+  // La password è stata reimposta mentre si era collegati: si passa al cambio obbligatorio.
+  const requirePasswordChange = useCallback(() => {
+    setSession((current) => {
+      if (current === null || current.mustChangePassword) return current
+      const next = { ...current, mustChangePassword: true }
+      saveStaffSession(next)
+      return next
+    })
   }, [])
 
   // Il client legge sempre il token più recente da qui, senza dipendere dai render. Si imposta in
@@ -48,9 +77,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return token !== null && expiry !== null && expiry > Date.now() ? token : null
       },
       onUnauthorized: () => logout(SESSION_EXPIRED_NOTICE),
+      onPasswordChangeRequired: requirePasswordChange,
     })
     return () => setStaffAuth(null)
-  }, [logout])
+  }, [logout, requirePasswordChange])
 
   // Allo scadere del token si torna al login anche se la pagina resta ferma.
   useEffect(() => {
@@ -62,8 +92,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session, logout])
 
   const value = useMemo(
-    () => ({ session, notice, login, logout }),
-    [session, notice, login, logout],
+    () => ({ session, notice, login, changePassword, logout }),
+    [session, notice, login, changePassword, logout],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

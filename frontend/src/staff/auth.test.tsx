@@ -62,15 +62,61 @@ describe('AuthProvider', () => {
 
   it('il login salva token, ruolo e utente (anche nello storage)', async () => {
     const token = fakeJwt(3600)
-    vi.spyOn(api, 'login').mockResolvedValue({ access_token: token, token_type: 'bearer', role: 'ADMIN' })
+    vi.spyOn(api, 'login').mockResolvedValue({
+      access_token: token,
+      token_type: 'bearer',
+      role: 'ADMIN',
+      must_change_password: false,
+    })
     const { result } = renderHook(useAuth, { wrapper })
     expect(result.current.session).toBeNull()
 
     await act(() => result.current.login('  mario ', 'segreta'))
 
     expect(api.login).toHaveBeenCalledWith('mario', 'segreta')
-    expect(result.current.session).toEqual({ token, role: 'ADMIN', username: 'mario' })
-    expect(loadStaffSession()).toEqual({ token, role: 'ADMIN', username: 'mario' })
+    const expected = { token, role: 'ADMIN', username: 'mario', restaurant: null, mustChangePassword: false }
+    expect(result.current.session).toEqual(expected)
+    expect(loadStaffSession()).toEqual(expected)
+  })
+
+  it('con lo slug accede al ristorante e ricorda la password provvisoria', async () => {
+    const token = fakeJwt(3600)
+    vi.spyOn(api, 'login').mockResolvedValue({
+      access_token: token,
+      token_type: 'bearer',
+      role: 'WAITER',
+      must_change_password: true,
+      restaurant_slug: 'da-gino',
+    })
+    const { result } = renderHook(useAuth, { wrapper })
+    await act(() => result.current.login('anna', 'x', 'da-gino'))
+    expect(api.login).toHaveBeenCalledWith('anna', 'x', 'da-gino')
+    expect(result.current.session).toMatchObject({ restaurant: 'da-gino', mustChangePassword: true })
+  })
+
+  it('cambiando la password l’obbligo sparisce, anche nello storage', async () => {
+    const token = fakeJwt(3600)
+    vi.spyOn(api, 'login').mockResolvedValue({
+      access_token: token,
+      token_type: 'bearer',
+      role: 'WAITER',
+      must_change_password: true,
+      restaurant_slug: 'da-gino',
+    })
+    const renewed = fakeJwt(7200)
+    vi.spyOn(api, 'changePassword').mockResolvedValue({
+      access_token: renewed,
+      token_type: 'bearer',
+      role: 'WAITER',
+      must_change_password: false,
+      restaurant_slug: 'da-gino',
+    })
+    const { result } = renderHook(useAuth, { wrapper })
+    await act(() => result.current.login('anna', 'x', 'da-gino'))
+    await act(() => result.current.changePassword('x', 'una-nuova-password-1'))
+    expect(api.changePassword).toHaveBeenCalledWith('x', 'una-nuova-password-1')
+    expect(result.current.session).toMatchObject({ mustChangePassword: false, token: renewed })
+    expect(loadStaffSession()?.mustChangePassword).toBe(false)
   })
 
   it('credenziali errate: l’errore passa al chiamante e non si resta collegati', async () => {
@@ -81,11 +127,34 @@ describe('AuthProvider', () => {
     expect(localStorage.getItem('cg:staff')).toBeNull()
   })
 
+  it('password reimpostata mentre si è collegati: il 403 del server porta al cambio obbligatorio', async () => {
+    localStorage.setItem(
+      'cg:staff',
+      JSON.stringify({ token: fakeJwt(3600), role: 'WAITER', username: 'anna', restaurant: 'da-gino' }),
+    )
+    const body = JSON.stringify({ detail: 'Devi cambiare la password prima di continuare' })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body, { status: 403 })))
+    const { result } = renderHook(useAuth, { wrapper })
+    expect(result.current.session?.mustChangePassword).toBeUndefined()
+    await act(() => api.staff.tables.list().catch(() => undefined))
+    expect(result.current.session?.mustChangePassword).toBe(true)
+    expect(loadStaffSession()?.mustChangePassword).toBe(true)
+  })
+
+  it('un altro 403 non cambia la sessione', async () => {
+    localStorage.setItem('cg:staff', JSON.stringify({ token: fakeJwt(3600), role: 'WAITER', username: 'anna' }))
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ detail: 'Permessi insufficienti' }), { status: 403 })))
+    const { result } = renderHook(useAuth, { wrapper })
+    await act(() => api.staff.tables.list().catch(() => undefined))
+    expect(result.current.session?.mustChangePassword).toBeUndefined()
+  })
+
   it('il logout azzera stato e storage', async () => {
     vi.spyOn(api, 'login').mockResolvedValue({
       access_token: fakeJwt(3600),
       token_type: 'bearer',
       role: 'WAITER',
+      must_change_password: false,
     })
     const { result } = renderHook(useAuth, { wrapper })
     await act(() => result.current.login('anna', 'x'))

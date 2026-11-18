@@ -30,6 +30,7 @@ const loginAs = (role: UserRole) =>
     access_token: fakeJwt(3600),
     token_type: 'bearer',
     role,
+    must_change_password: false,
   })
 
 async function fill(user: ReturnType<typeof userEvent.setup>, name = 'anna', password = 'pw') {

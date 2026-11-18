@@ -247,7 +247,15 @@ def test_ristorante_creato_si_usa_davvero(client, capo, gino):
         json={"username": "mario", "password": PW, "restaurant": "da-gino"},
     )
     assert r.status_code == 200 and r.json()["role"] == "ADMIN"
+    assert r.json()["must_change_password"] is True
     h = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    # Password provvisoria: finché non la cambia non può lavorare.
+    assert client.post("/api/tables", json={"number": 1}, headers=h).status_code == 403
+    cambio = {"current_password": PW, "new_password": "la-mia-nuova-password-1"}
+    cambiata = client.post("/api/auth/change-password", json=cambio, headers=h)
+    assert cambiata.status_code == 200
+    # Il token vecchio non vale più: si lavora con quello nuovo.
+    h = {"Authorization": f"Bearer {cambiata.json()['access_token']}"}
     assert client.post("/api/tables", json={"number": 1}, headers=h).status_code == 201
     assert (
         client.post(

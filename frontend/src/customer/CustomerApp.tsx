@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useAccount } from '../account/account'
 import { loginUrl } from '../account/redirect'
 import { ApiError, api, type PaymentIn, type PaymentMode } from '../api/client'
@@ -31,7 +31,7 @@ const isClientError = (error: unknown) =>
   error instanceof ApiError && error.status >= 400 && error.status < 500
 
 export function CustomerApp() {
-  const { tableId: tableParam } = useParams()
+  const { tableId: tableParam, slug: urlSlug } = useParams()
   const tableId = Number(tableParam)
   const [search] = useSearchParams()
   const urlToken = search.get('token')
@@ -137,6 +137,14 @@ export function CustomerApp() {
   const table = view.data
   const session = table.session
 
+  // L'indirizzo giusto del tavolo è quello del suo ristorante: con un QR vecchio o uno slug
+  // sbagliato si va lì, mai ai dati di un altro locale.
+  const slug = table.restaurant_slug
+  if (slug && slug !== urlSlug) {
+    const query = `?token=${encodeURIComponent(token as string)}`
+    return <Navigate to={`/ristorante/${slug}/tavolo/${tableId}${query}`} replace />
+  }
+
   if (!session) {
     return (
       <Shell>
@@ -184,7 +192,10 @@ export function CustomerApp() {
   }
 
   // Il percorso di ritorno è sempre quello completo del tavolo, token compreso.
-  const tablePath = `/table/${tableId}?token=${encodeURIComponent(token as string)}`
+  const tableQuery = `?token=${encodeURIComponent(token as string)}`
+  const tablePath = slug
+    ? `/ristorante/${slug}/tavolo/${tableId}${tableQuery}`
+    : `/table/${tableId}${tableQuery}`
   const continueAsGuest = () => {
     const choice = { sessionId: session.id }
     saveGuest(tableId, choice)

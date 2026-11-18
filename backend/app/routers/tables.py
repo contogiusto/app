@@ -8,15 +8,17 @@ from sqlalchemy.exc import IntegrityError
 
 from app.config import settings
 from app.deps import AdminUser, DbSession, RestaurantId, StaffUser
-from app.models import RestaurantTable, SessionStatus, TableSession
+from app.models import Restaurant, RestaurantTable, SessionStatus, TableSession
 from app.schemas import TableIn, TableOut
 
 router = APIRouter(prefix="/api/tables", tags=["tables"])
 
 
-def qr_url(table: RestaurantTable) -> str:
-    """Indirizzo della pagina cliente che il QR del tavolo deve aprire."""
-    return f"{settings.frontend_url}/table/{table.id}?token={table.qr_token}"
+def qr_url(table: RestaurantTable, slug: str | None) -> str:
+    """Indirizzo della pagina cliente che il QR del tavolo deve aprire (quella del ristorante)."""
+    if slug is None:  # ristorante senza indirizzo (non dovrebbe capitare): vecchio formato
+        return f"{settings.frontend_url}/table/{table.id}?token={table.qr_token}"
+    return f"{settings.frontend_url}/ristorante/{slug}/tavolo/{table.id}?token={table.qr_token}"
 
 
 def _nuovo_token() -> str:
@@ -86,5 +88,6 @@ def qr_svg(
     # `save(kind="svg")` produce un file SVG completo (con xmlns); `svg_inline` è pensato per
     # essere incollato in una pagina HTML e, servito come immagine, il browser non lo disegna.
     buffer = io.BytesIO()
-    segno.make(qr_url(table), error="m").save(buffer, kind="svg", scale=8, border=2)
+    slug = db.get(Restaurant, table.restaurant_id).slug
+    segno.make(qr_url(table, slug), error="m").save(buffer, kind="svg", scale=8, border=2)
     return Response(content=buffer.getvalue(), media_type="image/svg+xml")
