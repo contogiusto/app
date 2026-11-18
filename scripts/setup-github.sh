@@ -18,4 +18,4 @@ gh api -X PUT "repos/$REPO/branches/main/protection" --input - <<JSON
 JSON
 
 gh repo edit "$REPO" --enable-squash-merge --enable-merge-commit=false --enable-rebase-merge=false --delete-branch-on-merge
-echo "Ricorda: aggiungi il secret ANTHROPIC_API_KEY e collega il repo a Vercel."
+echo "Ricorda: collega il repo a Vercel e aggiungi il secret NEON_API_KEY (vedi CLAUDE.md)."

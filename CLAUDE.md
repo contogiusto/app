@@ -1,12 +1,17 @@
 # CLAUDE.md
 
-Guida per Claude Code in questo repository. Il dominio è in [docs/domain.md](docs/domain.md), le decisioni architetturali in [docs/adr/](docs/adr/), il flusso di lavoro in [CONTRIBUTING.md](CONTRIBUTING.md).
+Guida per Claude Code in questo repository. Il dominio è in [docs/domain.md](docs/domain.md), le decisioni architetturali in [docs/adr/](docs/adr/), il ciclo di sviluppo in [docs/sdlc.md](docs/sdlc.md), il flusso git in [CONTRIBUTING.md](CONTRIBUTING.md), prodotto e design system in [PRODUCT.md](PRODUCT.md) e [DESIGN.md](DESIGN.md).
 
 ## Progetto
 Webapp per ordini e pagamenti nei ristoranti (ruoli: ristoratore, cameriere, cliente via QR). Monorepo:
 - `frontend/` — React + TypeScript + Vite (test: Vitest, lint: oxlint)
 - `backend/` — FastAPI + SQLAlchemy 2 + Alembic (Python ≥3.11, gestito con `uv`; è anche il servizio Vercel `api`)
-- `design/new_interface/` — prototipo UI di riferimento (non fa parte della build)
+
+## Processo (SDLC)
+Per ogni funzionalità non banale: **intent → design → build → verify → review → ship** (dettagli in [docs/sdlc.md](docs/sdlc.md)). I documenti stanno nel repo: `docs/intents/NNNN-*.md` (problema e criteri di successo), `docs/design/NNNN-*.md` (approccio e piano a task, stesso numero), `docs/adr/` (decisioni durature). Comandi: `/intent`, `/design`, `/new-feature`, `/ship`. Non iniziare a scrivere codice per un intent senza design approvato; i cambi piccoli (una frase di diff) saltano intent e design. Prima di dire "fatto" verifica i criteri di successo dell'intent con evidenza.
+
+## Skill di progetto (`.claude/skills/`)
+Installate con `npx skills add` e fissate in `skills-lock.json` (aggiornamento: `npx skills update`). Per la UI: `impeccable` (legge `PRODUCT.md` e `DESIGN.md`; usa `/impeccable critique|audit|polish…`), `emil-design-eng` e le altre di Emil Kowalski (animazioni e dettagli), `design-taste-frontend` (gusto anti-"AI slop"). Le skill di Emil per Swift/Expo/mobile nativo non servono qui (app web). Sono codice di terzi che gira con i permessi dell'agente: rivedi il diff quando le aggiorni.
 
 ## Comandi
 ```bash
@@ -30,10 +35,10 @@ cd backend && uv run python -m app.export_openapi && cd ../frontend && npm run a
 ## Frontend
 - Tipi dell'API **generati**: `frontend/src/api/schema.d.ts` deriva da `backend/openapi.json`; non si modificano a mano. Il test `test_openapi_sync` (backend) e un passo della CI (frontend) falliscono se sono in ritardo. Il generatore gira con `npx` a versione fissa perché `openapi-typescript` non supporta ancora TypeScript 7.
 - Tutte le chiamate passano da `src/api/client.ts` (`api.*`, errori come `ApiError` con messaggio pronto per l'utente). Gli importi arrivano come stringhe ("8.50") e si usano in centesimi interi con `src/lib/money.ts`.
-- Il tema (colori, font, bottoni, card) è in `src/styles/theme.css`, preso dal prototipo; i componenti base in `src/ui/`. I font sono self-hosted (`@fontsource`), niente Google Fonts.
+- Il tema (colori, font, bottoni, card) è in `src/styles/theme.css` (decisioni in `DESIGN.md`); i componenti base in `src/ui/`. I font sono self-hosted (`@fontsource`), niente Google Fonts.
 - Il token del QR resta fuori dall'URL delle chiamate: va nell'header `X-Table-Token` (già gestito dal client).
-- Percorso cliente (`/table/:id?token=…`) in `src/customer/`: `CustomerApp` (dati, polling ogni 3 s, passi), `screens.tsx` (schermate dal design), `logic.ts` (funzioni pure), `storage.ts` (cosa ricorda il browser). Il server decide quote e chiusura (`next_share`, sessione assente = conto chiuso): il frontend li mostra soltanto, non li ricalcola.
-- Differenze volute dal prototipo: nessun form carta (i pagamenti sono simulati e non si devono far digitare numeri di carta in un form finto: con un provider reale i campi li ospita il provider); l'elenco dei commensali mostra solo chi ha già pagato (il backend non registra chi "entra" al tavolo); l'identità del cliente vale per una sola sessione.
+- Percorso cliente (`/table/:id?token=…`) in `src/customer/`: `CustomerApp` (dati, polling ogni 3 s, passi), `screens.tsx` (schermate), `logic.ts` (funzioni pure), `storage.ts` (cosa ricorda il browser). Il server decide quote e chiusura (`next_share`, sessione assente = conto chiuso): il frontend li mostra soltanto, non li ricalcola.
+- Scelte di prodotto per il pagamento: nessun form carta (i pagamenti sono simulati e non si devono far digitare numeri di carta in un form finto: con un provider reale i campi li ospita il provider); l'elenco dei commensali mostra solo chi ha già pagato (il backend non registra chi "entra" al tavolo); l'identità del cliente vale per una sola sessione.
 - Auth dello staff (`src/staff/`): `/staff/login` (pubblica, `LoginScreen.tsx`) chiama `api.login`. `AuthProvider.tsx` (montato in `App.tsx`) tiene `{token, role, username}` e lo salva in `localStorage` (`session.ts`, come `customer/storage.ts`); `useAuth()` (`auth.ts`) dà `session`, `login`, `logout`, `notice`. Il `exp` del JWT si legge senza verificare la firma: un token scaduto non si riprende dallo storage e, a pagina aperta, un timer riporta al login con "Sessione scaduta". `RequireRole` protegge le rotte: anonimo → `/staff/login` col ritorno alla pagina richiesta; `/waiter/*` per WAITER e ADMIN; `/admin/*` solo ADMIN (un WAITER viene mandato a `/waiter`). Dopo il login WAITER → `/waiter`, ADMIN → `/admin`.
 - Chiamate staff: `api.staff.{tables,sessions,orders,payments,menu}` in `src/api/client.ts` aggiungono da sole il token Bearer; su 401 (o token mancante/scaduto) fanno il logout e rilanciano `ApiError`, quindi le schermate non devono gestirlo. Non servono al login (`api.login` fa eccezione: il suo 401 è "Credenziali non valide"). Il QR (`api.staff.tables.qr`, solo ADMIN) richiede l'header Authorization, che un `<img src>` non manda: usa l'hook `useQrUrl(tableId)` (scarica il blob e dà un URL locale; dopo `regenerateQr` invalida `['qr', id]`). Il login non restituisce il nome del locale: le schermate staff non lo mostrano.
 - Dove si lavora: le schermate del cameriere vanno in `src/waiter/` (entry `WaiterApp.tsx`, default export, con sotto-rotte relative in un proprio `<Routes>`) e quelle del ristoratore in `src/admin/` (entry `AdminApp.tsx`). Usano `StaffLayout` (`title`, `actions`, `children`: barra con utente, ruolo ed "Esci") e **non** modificano `App.tsx`, `src/staff/` né `client.ts` salvo necessità concordata. Nei test di schermata basta `vi.mock` di `api.staff` come in `customer/CustomerApp.test.tsx`; per simulare un login `staff/testing.ts` offre `fakeJwt()`.

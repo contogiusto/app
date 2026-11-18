@@ -26,3 +26,6 @@ Thumbs.db
 
 # QR scaricati a mano per prova: contengono il token del tavolo, non vanno nel repo
 qr*.svg
+
+# Worktree di Claude Code (locali)
+.claude/worktrees/
