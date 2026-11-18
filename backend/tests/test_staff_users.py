@@ -121,7 +121,8 @@ def test_cambio_password_azzera_il_flag(client, db, make_user, locali):
         json={"current_password": PW, "new_password": "una-nuova-password-1"},
         headers=h,
     )
-    assert r.status_code == 204
+    assert r.status_code == 200
+    assert r.json()["must_change_password"] is False
     db.refresh(user)
     assert user.must_change_password is False
     assert verify_password("una-nuova-password-1", user.password_hash)
@@ -174,3 +175,48 @@ def test_il_login_dice_se_la_password_va_cambiata_e_il_ristorante(client, db, ma
     capo = make_user("capo", UserRole.SUPERADMIN, PW)
     r = client.post("/api/auth/login", json={"username": "capo", "password": PW})
     assert r.json()["restaurant_slug"] is None and capo.id
+
+
+# ---------- revoca dei token ----------
+
+
+def test_il_cambio_password_invalida_i_token_vecchi_e_ne_da_uno_nuovo(
+    client, db, make_user, locali
+):
+    import time
+
+    user = make_user("nuovo", UserRole.WAITER, PW, restaurant=locali[0])
+    vecchio = _h(user)
+    assert client.get("/api/tables", headers=vecchio).status_code == 200
+    time.sleep(1.1)  # i token portano l'istante in secondi
+    r = client.post(
+        "/api/auth/change-password",
+        json={"current_password": PW, "new_password": "una-nuova-password-1"},
+        headers=vecchio,
+    )
+    assert r.status_code == 200
+    assert client.get("/api/tables", headers=vecchio).status_code == 401
+    nuovo = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    assert client.get("/api/tables", headers=nuovo).status_code == 200
+
+
+def test_la_reimpostazione_della_password_invalida_i_token_dell_utente(
+    client, make_user, locali, h
+):
+    import time
+
+    w = make_user("cameriere", UserRole.WAITER, PW, restaurant=locali[0])
+    token_w = _h(w)
+    time.sleep(1.1)
+    r = client.post(f"/api/users/{w.id}/reset-password", json={"password": PW + "x"}, headers=h)
+    assert r.status_code == 204
+    assert client.get("/api/auth/me", headers=token_w).status_code == 401
+    # Chi ha reimpostato continua a lavorare: il suo token non è toccato.
+    assert client.get("/api/users", headers=h).status_code == 200
+
+
+def test_password_attuale_troppo_lunga_rifiutata(client, make_user, locali):
+    user = make_user("nuovo", UserRole.WAITER, PW, restaurant=locali[0])
+    body = {"current_password": "x" * 129, "new_password": "una-nuova-password-1"}
+    r = client.post("/api/auth/change-password", json=body, headers=_h(user))
+    assert r.status_code == 422

@@ -45,7 +45,7 @@ class UserOut(BaseModel):
 
 
 class ChangePasswordIn(BaseModel):
-    current_password: str
+    current_password: Annotated[str, Field(max_length=128)]
     new_password: Annotated[str, Field(min_length=12, max_length=128)]
 
 

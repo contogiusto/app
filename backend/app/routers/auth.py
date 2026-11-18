@@ -1,6 +1,7 @@
 import hashlib
+from datetime import UTC, datetime
 
-from fastapi import APIRouter, HTTPException, Request, Response, status
+from fastapi import APIRouter, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -96,9 +97,11 @@ def me(user: CurrentUser, db: DbSession) -> UserOut:
     return out
 
 
-@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
-def cambia_password(data: ChangePasswordIn, user: CurrentUser, db: DbSession) -> Response:
-    """Cambio della propria password (chiede quella attuale). Toglie l'obbligo di cambiarla."""
+@router.post("/change-password")
+def cambia_password(data: ChangePasswordIn, user: CurrentUser, db: DbSession) -> TokenResponse:
+    """Cambio della propria password (chiede quella attuale). Toglie l'obbligo di cambiarla.
+
+    I token emessi prima non valgono più: si risponde con un token nuovo per questa sessione."""
     chiave = f"change-pw:{user.id}"
     ratelimit.verifica(chiave, settings.rate_limit_login_user_max, settings.rate_limit_login_window)
     if not verify_password(data.current_password, user.password_hash):
@@ -110,5 +113,11 @@ def cambia_password(data: ChangePasswordIn, user: CurrentUser, db: DbSession) ->
         raise Invalid("La nuova password dev'essere diversa da quella attuale")
     user.password_hash = hash_password(data.new_password)
     user.must_change_password = False
+    user.password_changed_at = datetime.now(UTC)
     db.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return TokenResponse(
+        access_token=create_access_token(user),
+        role=user.role,
+        must_change_password=False,
+        restaurant_slug=_slug_di(db, user),
+    )

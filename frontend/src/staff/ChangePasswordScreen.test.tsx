@@ -16,6 +16,14 @@ vi.mock('../admin/AdminApp', async () => {
   return { default: () => <StaffLayout title="Gestione">{null}</StaffLayout> }
 })
 
+const NEW_TOKEN = {
+  access_token: fakeJwt(3600),
+  token_type: 'bearer',
+  role: 'WAITER' as const,
+  must_change_password: false,
+  restaurant_slug: 'da-gino',
+}
+
 function signIn(extra: object = {}) {
   localStorage.setItem(
     'cg:staff',
@@ -44,7 +52,7 @@ describe('password provvisoria', () => {
 
   it('valida le password e poi porta alla sala del proprio ristorante', async () => {
     signIn({ mustChangePassword: true })
-    const change = vi.spyOn(api, 'changePassword').mockResolvedValue(undefined)
+    const change = vi.spyOn(api, 'changePassword').mockResolvedValue(NEW_TOKEN)
     const ui = userEvent.setup()
     renderAt('/cambio-password')
 
@@ -96,6 +104,12 @@ describe('indirizzi del ristorante', () => {
   it('lo staff non entra nel ristorante di un altro: torna al proprio', async () => {
     signIn({ role: 'ADMIN' })
     renderAt('/ristorante/da-lia/admin')
+    expect(await screen.findByRole('heading', { name: 'Gestione' })).toBeInTheDocument()
+  })
+
+  it('/piattaforma non è un vecchio indirizzo: chi non è admin centrale va alla sua pagina', async () => {
+    signIn({ role: 'ADMIN' })
+    renderAt('/piattaforma')
     expect(await screen.findByRole('heading', { name: 'Gestione' })).toBeInTheDocument()
   })
 

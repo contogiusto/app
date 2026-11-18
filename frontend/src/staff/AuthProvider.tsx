@@ -41,10 +41,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
-    await api.changePassword(currentPassword, newPassword)
+    // Il server revoca i token precedenti e ne dà uno nuovo per questa sessione.
+    const result = await api.changePassword(currentPassword, newPassword)
     setSession((current) => {
       if (current === null) return current
-      const next = { ...current, mustChangePassword: false }
+      const next = { ...current, token: result.access_token, mustChangePassword: false }
+      saveStaffSession(next)
+      return next
+    })
+  }, [])
+
+  // La password è stata reimposta mentre si era collegati: si passa al cambio obbligatorio.
+  const requirePasswordChange = useCallback(() => {
+    setSession((current) => {
+      if (current === null || current.mustChangePassword) return current
+      const next = { ...current, mustChangePassword: true }
       saveStaffSession(next)
       return next
     })
@@ -66,9 +77,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return token !== null && expiry !== null && expiry > Date.now() ? token : null
       },
       onUnauthorized: () => logout(SESSION_EXPIRED_NOTICE),
+      onPasswordChangeRequired: requirePasswordChange,
     })
     return () => setStaffAuth(null)
-  }, [logout])
+  }, [logout, requirePasswordChange])
 
   // Allo scadere del token si torna al login anche se la pagina resta ferma.
   useEffect(() => {

@@ -103,12 +103,19 @@ describe('AuthProvider', () => {
       must_change_password: true,
       restaurant_slug: 'da-gino',
     })
-    vi.spyOn(api, 'changePassword').mockResolvedValue(undefined)
+    const renewed = fakeJwt(7200)
+    vi.spyOn(api, 'changePassword').mockResolvedValue({
+      access_token: renewed,
+      token_type: 'bearer',
+      role: 'WAITER',
+      must_change_password: false,
+      restaurant_slug: 'da-gino',
+    })
     const { result } = renderHook(useAuth, { wrapper })
     await act(() => result.current.login('anna', 'x', 'da-gino'))
     await act(() => result.current.changePassword('x', 'una-nuova-password-1'))
     expect(api.changePassword).toHaveBeenCalledWith('x', 'una-nuova-password-1')
-    expect(result.current.session?.mustChangePassword).toBe(false)
+    expect(result.current.session).toMatchObject({ mustChangePassword: false, token: renewed })
     expect(loadStaffSession()?.mustChangePassword).toBe(false)
   })
 
@@ -118,6 +125,28 @@ describe('AuthProvider', () => {
     await expect(act(() => result.current.login('mario', 'no'))).rejects.toThrow('Credenziali non valide')
     expect(result.current.session).toBeNull()
     expect(localStorage.getItem('cg:staff')).toBeNull()
+  })
+
+  it('password reimpostata mentre si è collegati: il 403 del server porta al cambio obbligatorio', async () => {
+    localStorage.setItem(
+      'cg:staff',
+      JSON.stringify({ token: fakeJwt(3600), role: 'WAITER', username: 'anna', restaurant: 'da-gino' }),
+    )
+    const body = JSON.stringify({ detail: 'Devi cambiare la password prima di continuare' })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body, { status: 403 })))
+    const { result } = renderHook(useAuth, { wrapper })
+    expect(result.current.session?.mustChangePassword).toBeUndefined()
+    await act(() => api.staff.tables.list().catch(() => undefined))
+    expect(result.current.session?.mustChangePassword).toBe(true)
+    expect(loadStaffSession()?.mustChangePassword).toBe(true)
+  })
+
+  it('un altro 403 non cambia la sessione', async () => {
+    localStorage.setItem('cg:staff', JSON.stringify({ token: fakeJwt(3600), role: 'WAITER', username: 'anna' }))
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ detail: 'Permessi insufficienti' }), { status: 403 })))
+    const { result } = renderHook(useAuth, { wrapper })
+    await act(() => api.staff.tables.list().catch(() => undefined))
+    expect(result.current.session?.mustChangePassword).toBeUndefined()
   })
 
   it('il logout azzera stato e storage', async () => {

@@ -98,6 +98,8 @@ type StaffAuthHandlers = {
   getToken: () => string | null
   /** Chiamato quando la sessione non vale più (401 o token scaduto): fa il logout. */
   onUnauthorized: () => void
+  /** Chiamato se il server dice che la password va cambiata (reimpostata mentre si era collegati). */
+  onPasswordChangeRequired?: () => void
 }
 let staffAuth: StaffAuthHandlers | null = null
 
@@ -106,6 +108,8 @@ export function setStaffAuth(handlers: StaffAuthHandlers | null) {
 }
 
 const SESSION_EXPIRED = 'Sessione scaduta: accedi di nuovo'
+/** Messaggio del server quando la password provvisoria non è ancora stata cambiata. */
+const PASSWORD_CHANGE_REQUIRED = 'Devi cambiare la password prima di continuare'
 
 /** Richiesta autenticata: aggiunge il token e, su 401, riporta lo staff al login. */
 async function authed<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -118,6 +122,9 @@ async function authed<T>(path: string, options: RequestOptions = {}): Promise<T>
     return await request<T>(path, { ...options, headers: { ...options.headers, ...bearer(token) } })
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) staffAuth?.onUnauthorized()
+    if (error instanceof ApiError && error.status === 403 && error.message === PASSWORD_CHANGE_REQUIRED) {
+      staffAuth?.onPasswordChangeRequired?.()
+    }
     throw error
   }
 }
@@ -167,7 +174,7 @@ export const api = {
 
   /** Cambio della propria password (chiede quella attuale). */
   changePassword: (currentPassword: string, newPassword: string) =>
-    authed<void>('/api/auth/change-password', {
+    authed<TokenResponse>('/api/auth/change-password', {
       method: 'POST',
       body: { current_password: currentPassword, new_password: newPassword },
     }),

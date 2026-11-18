@@ -16,6 +16,8 @@ export interface paths {
         /**
          * Cambia Password
          * @description Cambio della propria password (chiede quella attuale). Toglie l'obbligo di cambiarla.
+         *
+         *     I token emessi prima non valgono più: si risponde con un token nuovo per questa sessione.
          */
         post: operations["cambia_password_api_auth_change_password_post"];
         delete?: never;
@@ -1183,11 +1185,13 @@ export interface operations {
         };
         responses: {
             /** @description Successful Response */
-            204: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["TokenResponse"];
+                };
             };
             /** @description Validation Error */
             422: {

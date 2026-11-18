@@ -18,7 +18,8 @@ export function RequireRole({ roles, children }: { roles: UserRole[]; children: 
   }
   if (session.mustChangePassword) return <Navigate to={CHANGE_PASSWORD_PATH} replace />
   // Vecchio indirizzo (/admin, /waiter): si porta lo staff nel suo ristorante.
-  if (!slug && session.restaurant && session.role !== 'SUPERADMIN') {
+  const legacy = location.pathname.startsWith('/admin') || location.pathname.startsWith('/waiter')
+  if (!slug && legacy && session.restaurant && session.role !== 'SUPERADMIN') {
     return <Navigate to={`/ristorante/${session.restaurant}${location.pathname}`} replace />
   }
   // Uno staff entra solo nel proprio ristorante: lo slug dell'URL deve essere il suo.

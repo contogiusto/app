@@ -41,6 +41,9 @@ def get_current_user(
     # Utente disattivato o locale disattivato: il token smette di valere subito.
     if user is None or not user.active:
         raise _non_autenticato()
+    changed = user.password_changed_at
+    if changed is not None and payload.get("iat", 0) < int(changed.timestamp()):
+        raise _non_autenticato()  # token emesso prima dell'ultimo cambio di password
     if user.restaurant_id is not None and not db.get(Restaurant, user.restaurant_id).active:
         raise _non_autenticato()
     return user

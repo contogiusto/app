@@ -4,6 +4,7 @@
       "ChangePasswordIn": {
         "properties": {
           "current_password": {
+            "maxLength": 128,
             "title": "Current Password",
             "type": "string"
           },
@@ -1366,7 +1367,7 @@
   "paths": {
     "/api/auth/change-password": {
       "post": {
-        "description": "Cambio della propria password (chiede quella attuale). Toglie l'obbligo di cambiarla.",
+        "description": "Cambio della propria password (chiede quella attuale). Toglie l'obbligo di cambiarla.\n\nI token emessi prima non valgono più: si risponde con un token nuovo per questa sessione.",
         "operationId": "cambia_password_api_auth_change_password_post",
         "requestBody": {
           "content": {
@@ -1379,7 +1380,14 @@
           "required": true
         },
         "responses": {
-          "204": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
             "description": "Successful Response"
           },
           "422": {

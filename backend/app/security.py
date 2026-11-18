@@ -46,6 +46,7 @@ def create_access_token(user: AppUser, expires_in: timedelta = TOKEN_LIFETIME) -
         "sub": str(user.id),
         "typ": STAFF,
         "role": user.role.value,
+        "iat": datetime.now(UTC),
         "exp": datetime.now(UTC) + expires_in,
     }
     return jwt.encode(payload, _secret(), algorithm=ALGORITHM)

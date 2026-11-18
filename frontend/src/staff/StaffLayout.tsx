@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
 import { Logo } from '../ui/Logo'
-import { useAuth } from './auth'
+import { CHANGE_PASSWORD_PATH, useAuth } from './auth'
 
 const ROLE_LABEL = { SUPERADMIN: 'Admin centrale', ADMIN: 'Ristoratore', WAITER: 'Cameriere' } as const
 
@@ -41,6 +42,13 @@ export function StaffLayout({ title, actions, children }: Props) {
               <div style={{ fontWeight: 700, fontSize: 14 }}>{session.username}</div>
               <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{ROLE_LABEL[session.role]}</div>
             </div>
+            <Link
+              to={CHANGE_PASSWORD_PATH}
+              className="btn btn--ghost"
+              style={{ padding: '9px 15px', fontSize: 13, textDecoration: 'none' }}
+            >
+              <Icon name="lock" size={15} /> Password
+            </Link>
             <button
               type="button"
               className="btn btn--ghost"
