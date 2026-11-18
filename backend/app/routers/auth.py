@@ -60,7 +60,8 @@ def login(data: LoginRequest, request: Request, db: DbSession) -> TokenResponse:
     # password giusta aspetta, altrimenti il limite non fermerebbe chi sta indovinando.
     ip = ratelimit.ip_client(request.headers, request.client and request.client.host)
     slug = data.restaurant.strip().lower() if data.restaurant else None
-    nome = hashlib.sha256(f"{slug}:{data.username.strip().lower()}".encode()).hexdigest()[:32]
+    # Il limite per utente conta solo lo username (non lo slug): niente doppio budget di tentativi.
+    nome = hashlib.sha256(data.username.strip().lower().encode()).hexdigest()[:32]
     per_ip = (f"login-ip:{ip}", settings.rate_limit_login_ip_max)
     per_utente = (f"login-user:{nome}", settings.rate_limit_login_user_max)
     finestra = settings.rate_limit_login_window

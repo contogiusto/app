@@ -45,6 +45,7 @@
 - **API/DB:** nuove colonne e rotte come sopra; `openapi.json` e `schema.d.ts` da rigenerare; il login ha un parametro facoltativo (compatibile).
 - **UI:** rotte nuove, schermata piattaforma, schermata utenti del ristorante, cambio password obbligatorio al primo accesso.
 - **Deploy:** nessuna variabile nuova. Il contenuto del QR cambia, il vecchio resta valido.
+- **Da fare nella 3c (dalla revisione di sicurezza):** `must_change_password` esiste ma non è ancora applicato (serve l'endpoint di cambio password e il blocco delle rotte dati finché non si cambia); togliere il login senza slug (3d) elimina anche i casi di ambiguità e il doppio budget di tentativi. Migration: il downgrade fallisce se due ristoranti hanno lo stesso username e cancella i SUPERADMIN; creare gli utenti con la CLI solo dopo il deploy (il codice vecchio li creerebbe senza ristorante).
 - **Rischi:** una query senza filtro di ristorante = fuga di dati tra locali (mitigato da test di isolamento e da una `/code-review` dedicata); slug riservati che collidono con le rotte; promozione a superadmin da fare a mano una volta.
 
 ## Piano a task (una PR per fase)

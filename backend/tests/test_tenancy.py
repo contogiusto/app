@@ -363,3 +363,45 @@ def test_slugify():
     assert slugify("Trattoria Da Gino!") == "trattoria-da-gino"
     assert slugify("Caffè  dell'Angolo") == "caffe-dell-angolo"
     assert slugify("!!") == "ristorante"
+
+
+# ---------- casi aggiunti dopo la revisione di sicurezza ----------
+
+
+def test_voce_di_altra_sessione_non_pagabile_in_own(client, db, due, utenti):
+    a, b = due
+    a["sessione"].payment_mode = PaymentMode.OWN
+    db.delete(a["pagamento"])
+    db.flush()
+    r = client.post(
+        f"/api/sessions/{a['sessione'].id}/payments",
+        json={
+            "method": "CASH",
+            "customer_nickname": "X",
+            "items": [{"order_item_id": b["riga"].id, "quantity": 1}],
+        },
+        headers=utenti["waiter"],
+    )
+    assert r.status_code == 404
+    db.refresh(b["riga"])
+    assert db.query(Payment).filter(Payment.session_id == b["sessione"].id).count() == 1
+
+
+def test_cameriere_non_usa_le_rotte_da_admin(client, due, utenti):
+    _, b = due
+    h = utenti["waiter"]
+    assert client.get("/api/menu/all", headers=h).status_code == 403
+    assert client.post("/api/tables", json={"number": 9}, headers=h).status_code == 403
+    assert client.get(f"/api/tables/{b['tavolo'].id}/qr.svg", headers=h).status_code == 403
+
+
+def test_login_utente_disattivato_con_password_giusta_rifiutato(client, db, make_user, due):
+    a, _ = due
+    user = make_user("mario", UserRole.WAITER, "segreta-lunga-1", restaurant=a["r"])
+    user.active = False
+    db.flush()
+    r = client.post(
+        "/api/auth/login",
+        json={"username": "mario", "password": "segreta-lunga-1", "restaurant": "da-gino"},
+    )
+    assert r.status_code == 401
