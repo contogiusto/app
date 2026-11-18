@@ -17,5 +17,5 @@ Livello "app" in fondo a `theme.css` (classi riusabili) + pochi punti di agganci
 - [x] Classi e token di movimento nel tema.
 - [x] Percorso cliente: step, hero, conferma, importi animati.
 - [x] Modali/sheet, barre, marchio, favicon.
-- [ ] Verifica dal vivo su anteprima (cameriere, ristoratore, QR, stampa).
+- [ ] (dopo il merge, in produzione) Verifica dal vivo di cameriere, ristoratore, QR e stampa; applicare `.skeleton`; conteggio anche sui totali OWN; bersagli 44 px per `.iconbtn` (cameriere, ristoratore, QR, stampa).
 - [ ] `impeccable critique/audit` e prova su telefono vero.

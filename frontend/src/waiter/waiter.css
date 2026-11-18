@@ -57,7 +57,9 @@
   display: flex;
   border-radius: 50%;
 }
-.waiter__remove:hover:not(:disabled) { color: var(--text); background: var(--wash-2); }
+@media (hover: hover) and (pointer: fine) {
+  .waiter__remove:hover:not(:disabled) { color: var(--text); background: var(--wash-2); }
+}
 .waiter__remove:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .waiter__overlay {

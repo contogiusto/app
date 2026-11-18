@@ -754,7 +754,7 @@ export function Settled({
             <span
               key={angle}
               className="success-badge__dot"
-              style={{ '--a': `${angle}deg`, '--c': color } as CSSProperties}
+              style={{ '--a': `${angle}deg`, '--confetti': color } as CSSProperties}
             />
           ))}
           <div className="success-badge__disc">

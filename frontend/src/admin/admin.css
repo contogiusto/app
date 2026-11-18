@@ -41,8 +41,10 @@
   align-items: center;
   gap: 8px;
 }
-.admin-nav a:hover {
-  background: var(--wash-2);
+@media (hover: hover) and (pointer: fine) {
+  .admin-nav a:hover {
+    background: var(--wash-2);
+  }
 }
 .admin-nav a[aria-current='page'] {
   background: var(--text);
