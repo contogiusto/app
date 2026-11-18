@@ -17,6 +17,12 @@ vi.mock('../admin/AdminApp', async () => {
   return { default: () => <StaffLayout title="Gestione">{null}</StaffLayout> }
 })
 
+// La schermata vera della piattaforma ha i suoi test (src/platform): qui conta solo la rotta.
+vi.mock('../platform/PlatformApp', async () => {
+  const { StaffLayout } = await import('../staff/StaffLayout')
+  return { default: () => <StaffLayout title="Piattaforma">{null}</StaffLayout> }
+})
+
 function signIn(role: UserRole) {
   localStorage.setItem('cg:staff', JSON.stringify({ token: fakeJwt(3600), role, username: 'u' }))
 }
@@ -47,6 +53,25 @@ describe('rotte protette', () => {
     renderAt('/admin')
     expect(screen.getByRole('heading', { name: 'Sala' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Gestione' })).toBeNull()
+  })
+
+  it('SUPERADMIN entra in /piattaforma e non nelle rotte dei locali', () => {
+    signIn('SUPERADMIN')
+    const first = renderAt('/piattaforma')
+    expect(screen.getByRole('heading', { name: 'Piattaforma' })).toBeInTheDocument()
+    first.unmount()
+    renderAt('/admin')
+    expect(screen.getByRole('heading', { name: 'Piattaforma' })).toBeInTheDocument()
+  })
+
+  it('ADMIN e WAITER su /piattaforma vengono riportati alla loro pagina', () => {
+    signIn('WAITER')
+    const first = renderAt('/piattaforma')
+    expect(screen.getByRole('heading', { name: 'Sala' })).toBeInTheDocument()
+    first.unmount()
+    signIn('ADMIN')
+    renderAt('/piattaforma')
+    expect(screen.getByRole('heading', { name: 'Gestione' })).toBeInTheDocument()
   })
 
   it('ADMIN entra sia in /admin sia in /waiter', () => {

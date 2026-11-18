@@ -21,4 +21,5 @@ export function useAuth(): AuthContextValue {
 }
 
 /** Dove porta il login per ciascun ruolo. */
-export const homeFor = (role: UserRole) => (role === 'ADMIN' ? '/admin' : '/waiter')
+export const homeFor = (role: UserRole) =>
+  role === 'SUPERADMIN' ? '/piattaforma' : role === 'ADMIN' ? '/admin' : '/waiter'

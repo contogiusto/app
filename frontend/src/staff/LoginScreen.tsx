@@ -9,8 +9,9 @@ import { homeFor, useAuth } from './auth'
 /** Il ritorno alla pagina richiesta vale solo se il ruolo può entrarci. */
 function allowed(path: unknown, role: UserRole): path is string {
   if (typeof path !== 'string') return false
+  if (path.startsWith('/piattaforma')) return role === 'SUPERADMIN'
   if (path.startsWith('/admin')) return role === 'ADMIN'
-  return path.startsWith('/waiter')
+  return path.startsWith('/waiter') && role !== 'SUPERADMIN'
 }
 
 export default function LoginScreen() {

@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import (
     BaseModel,
@@ -12,6 +12,7 @@ from pydantic import (
 )
 
 from app.models import PaymentMethod, PaymentMode, PaymentStatus, SessionStatus, UserRole
+from app.slugs import valid_slug
 
 Prezzo = Annotated[Decimal, Field(ge=0, max_digits=8, decimal_places=2)]
 
@@ -295,3 +296,78 @@ class PublicTableOut(BaseModel):
     restaurant_name: str
     table_number: int
     session: PublicSessionOut | None
+
+
+# ---------- admin centrale e gestione utenti ----------
+
+Nome = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
+Username = Annotated[
+    str,
+    StringConstraints(
+        strip_whitespace=True, min_length=3, max_length=64, pattern=r"^[A-Za-z0-9._-]+$"
+    ),
+]
+PasswordProvvisoria = Annotated[str, Field(min_length=12, max_length=128)]
+RuoloRistorante = Literal["ADMIN", "WAITER"]
+
+
+def _slug_valido(value: str) -> str:
+    value = value.strip().lower()
+    if not valid_slug(value):
+        raise ValueError(
+            "Indirizzo non valido: 3-40 caratteri tra lettere minuscole, numeri e trattini "
+            "(non agli estremi, non doppi) e non riservato"
+        )
+    return value
+
+
+class RestaurantIn(BaseModel):
+    name: Nome
+    slug: str
+
+    _slug = field_validator("slug")(_slug_valido)
+
+
+class RestaurantPatch(BaseModel):
+    name: Nome | None = None
+    slug: str | None = None
+    active: bool | None = None
+
+    @field_validator("slug")
+    @classmethod
+    def _slug(cls, value: str | None) -> str | None:
+        return None if value is None else _slug_valido(value)
+
+
+class RestaurantOut(BaseModel):
+    id: int
+    name: str
+    slug: str
+    active: bool
+    created_at: datetime
+    users: int
+
+
+class StaffUserIn(BaseModel):
+    username: Username
+    role: RuoloRistorante
+    password: PasswordProvvisoria
+
+
+class StaffUserPatch(BaseModel):
+    active: bool | None = None
+    role: RuoloRistorante | None = None
+
+
+class StaffUserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    username: str
+    role: UserRole
+    active: bool
+    must_change_password: bool
+
+
+class PasswordIn(BaseModel):
+    password: PasswordProvvisoria

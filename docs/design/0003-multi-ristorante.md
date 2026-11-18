@@ -50,7 +50,7 @@
 
 ## Piano a task (una PR per fase)
 - [x] **3a Backend e dati** (login: senza slug entra anche uno staff con username univoco, transitorio fino alla 3d; `GET /api/menu` ora è dello staff; QR invariato): modello, migration "espandi", `RestaurantContext`, filtri su tutti gli endpoint, tolto `ristorante_singolo`, test di isolamento, login con slug, CLI (`promote-superadmin`, `--restaurant`). Verifica: pytest incluso il test "due ristoranti"; `test_openapi_sync`.
-- [ ] **3b Piattaforma**: API e interfaccia `/piattaforma` (ristoranti, admin dei ristoranti, attiva/disattiva). Verifica: test API e prova da interfaccia.
+- [x] **3b Piattaforma** (`/api/platform`, `app/users.py` condiviso con la 3c, UI `/piattaforma`): API e interfaccia `/piattaforma` (ristoranti, admin dei ristoranti, attiva/disattiva). Verifica: test API e prova da interfaccia.
 - [ ] **3c Utenti del ristorante e nuovi indirizzi**: API e schermata utenti, cambio password al primo accesso, rotte `/ristorante/:slug/…`, QR nuovo e redirect dei vecchi. Verifica: test frontend e QR vecchio e nuovo aperti a mano.
 - [ ] **3d Restringi**: migration finale e pulizia dei redirect temporanei.
 
