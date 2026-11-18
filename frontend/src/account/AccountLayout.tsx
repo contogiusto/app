@@ -32,7 +32,7 @@ export default function AccountLayout({ children }: { children: ReactNode }) {
   const { session, logout } = useAccount()
   const name = session ? `${session.customer.first_name} ${session.customer.last_name}` : ''
   return (
-    <div className="paper-grain acc" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="app-bg acc" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <header className="acc-top">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Initial name={name} size={34} />

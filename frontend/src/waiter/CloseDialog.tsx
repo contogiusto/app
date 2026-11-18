@@ -30,10 +30,10 @@ export function CloseDialog({ sessionId, tableNumber, remainingCents, onClose }:
       placement="center"
       onClose={onClose}
     >
-      <h3 className="serif" style={{ fontSize: 26, marginBottom: 10 }}>
+      <h3 className="display" style={{ fontSize: 20, marginBottom: 10 }}>
         Chiudere il tavolo {tableNumber}?
       </h3>
-      <p style={{ color: 'var(--ink-2)', fontSize: 14.5, marginBottom: 12 }}>
+      <p style={{ color: 'var(--text-2)', fontSize: 14.5, marginBottom: 12 }}>
         La chiusura non si può annullare: nessuno potrà più ordinare o pagare su questa sessione.
       </p>
       {remainingCents !== null && remainingCents > 0 && (

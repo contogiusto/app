@@ -15,18 +15,18 @@ type Props = {
 export function StaffLayout({ title, actions, children }: Props) {
   const { session, logout } = useAuth()
   return (
-    <div className="paper-grain" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="app-bg" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <header
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 16,
           padding: '12px 22px',
-          borderBottom: '1px solid var(--line)',
-          background: 'var(--paper-2)',
+          borderBottom: '1px solid var(--border)',
+          background: 'var(--surface)',
         }}
       >
-        <h1 className="serif" style={{ fontSize: 26, lineHeight: 1, flex: 1 }}>
+        <h1 className="display" style={{ fontSize: 20, lineHeight: 1.15, flex: 1 }}>
           {title}
         </h1>
         {actions}
@@ -34,7 +34,7 @@ export function StaffLayout({ title, actions, children }: Props) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ textAlign: 'right', lineHeight: 1.2 }}>
               <div style={{ fontWeight: 700, fontSize: 14 }}>{session.username}</div>
-              <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>{ROLE_LABEL[session.role]}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{ROLE_LABEL[session.role]}</div>
             </div>
             <button
               type="button"

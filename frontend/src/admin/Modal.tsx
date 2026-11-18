@@ -59,7 +59,7 @@ export function Modal({ title, onClose, children, role = 'dialog' }: Props) {
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(34,28,21,.42)',
+        background: 'var(--scrim)',
         zIndex: 200,
         display: 'flex',
         alignItems: 'center',
@@ -84,7 +84,7 @@ export function Modal({ title, onClose, children, role = 'dialog' }: Props) {
           boxShadow: 'var(--shadow-lg)',
         }}
       >
-        <h2 id={titleId} className="serif" style={{ fontSize: 26, marginBottom: 20 }}>
+        <h2 id={titleId} className="display" style={{ fontSize: 20, marginBottom: 20 }}>
           {title}
         </h2>
         {children}

@@ -71,7 +71,7 @@ export function MenuScreen() {
       )}
 
       {items.length === 0 && (
-        <p style={{ color: 'var(--ink-2)' }}>Il menù è vuoto: aggiungi il primo piatto.</p>
+        <p style={{ color: 'var(--text-2)' }}>Il menù è vuoto: aggiungi il primo piatto.</p>
       )}
 
       {groupByCategory(items).map(([category, list]) => (
@@ -79,7 +79,7 @@ export function MenuScreen() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, margin: '0 2px 10px' }}>
             <CategoryDot category={category} size={9} />
             <h3 className="eyebrow">{category}</h3>
-            <span style={{ flex: 1, height: 1, background: 'var(--line)' }} />
+            <span style={{ flex: 1, height: 1, background: 'var(--border)' }} />
           </div>
           <ul className="card" style={{ overflow: 'hidden', listStyle: 'none', margin: 0, padding: 0 }}>
             {list.map((item, index) => (
@@ -90,13 +90,13 @@ export function MenuScreen() {
                   alignItems: 'center',
                   gap: 14,
                   padding: '13px 18px',
-                  borderTop: index ? '1px solid var(--line)' : 'none',
+                  borderTop: index ? '1px solid var(--border)' : 'none',
                 }}
               >
                 <div style={{ flex: 1, opacity: item.available ? 1 : 0.55 }}>
                   <div style={{ fontSize: 15, fontWeight: 600 }}>{item.name}</div>
                   {!item.available && (
-                    <span style={{ fontSize: 11.5, color: 'var(--clay-deep)', fontWeight: 600 }}>
+                    <span style={{ fontSize: 11.5, color: 'var(--accent-deep)', fontWeight: 600 }}>
                       Non disponibile
                     </span>
                   )}
@@ -122,7 +122,7 @@ export function MenuScreen() {
                 <button
                   type="button"
                   className="iconbtn"
-                  style={{ color: 'var(--clay-deep)' }}
+                  style={{ color: 'var(--accent-deep)' }}
                   aria-label={`Elimina ${item.name}`}
                   onClick={() => setDialog({ kind: 'delete', item })}
                 >
@@ -256,7 +256,7 @@ function DishForm({
             </div>
           </div>
           {priceError && (
-            <p id="dish-price-error" role="alert" style={{ color: 'var(--clay-deep)', fontSize: 13.5 }}>
+            <p id="dish-price-error" role="alert" style={{ color: 'var(--danger-deep)', fontSize: 13.5 }}>
               {priceError}
             </p>
           )}
@@ -305,7 +305,7 @@ function DeleteDish({
 
   return (
     <Modal title="Eliminare il piatto?" role="alertdialog" onClose={onClose}>
-      <p style={{ color: 'var(--ink-2)', lineHeight: 1.5 }}>
+      <p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>
         «{item.name}» verrà rimosso dal menù. L'operazione non si può annullare.
       </p>
       {error && (
@@ -318,7 +318,7 @@ function DeleteDish({
           Annulla
         </button>
         {alreadyOrdered && item.available && (
-          <button type="button" className="btn btn--olive" disabled={hide.isPending} onClick={() => hide.mutate()}>
+          <button type="button" className="btn btn--ok" disabled={hide.isPending} onClick={() => hide.mutate()}>
             Rendi non disponibile
           </button>
         )}
@@ -326,7 +326,7 @@ function DeleteDish({
           <button
             type="button"
             className="btn"
-            style={{ ['--bg' as string]: 'var(--clay-deep)' }}
+            style={{ ['--bg' as string]: 'var(--accent-deep)' }}
             disabled={remove.isPending}
             onClick={() => remove.mutate()}
           >

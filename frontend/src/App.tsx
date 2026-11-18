@@ -14,7 +14,7 @@ import WaiterApp from './waiter/WaiterApp'
 function Message({ title, children }: { title: string; children?: string }) {
   return (
     <main
-      className="paper-grain"
+      className="app-bg"
       style={{
         minHeight: '100%',
         display: 'flex',
@@ -26,10 +26,10 @@ function Message({ title, children }: { title: string; children?: string }) {
         textAlign: 'center',
       }}
     >
-      <h1 className="serif" style={{ fontSize: 44 }}>
+      <h1 className="display" style={{ fontSize: 32 }}>
         {title}
       </h1>
-      {children && <p style={{ color: 'var(--ink-2)', maxWidth: 360 }}>{children}</p>}
+      {children && <p style={{ color: 'var(--text-2)', maxWidth: 360 }}>{children}</p>}
     </main>
   )
 }

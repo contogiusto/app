@@ -51,10 +51,10 @@ export default function LoginScreen() {
             <Icon name="lock" size={16} style={{ color: 'var(--accent)' }} />
             <span className="eyebrow">Area staff</span>
           </div>
-          <h1 className="serif" style={{ fontSize: 46, lineHeight: 0.98, marginBottom: 14 }}>
+          <h1 className="display" style={{ fontSize: 32, lineHeight: 1.15, marginBottom: 14 }}>
             Accedi.
           </h1>
-          <p style={{ color: 'var(--ink-2)', fontSize: 16, lineHeight: 1.45, marginBottom: 30 }}>
+          <p style={{ color: 'var(--text-2)', fontSize: 16, lineHeight: 1.45, marginBottom: 30 }}>
             Per camerieri e ristoratori: entra con le credenziali che ti ha dato il locale.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -94,8 +94,8 @@ export default function LoginScreen() {
                 margin: '14px 0 0',
                 padding: '10px 14px',
                 borderRadius: 'var(--r-md)',
-                background: 'var(--clay-tint)',
-                color: 'var(--clay-deep)',
+                background: 'var(--danger-tint)',
+                color: 'var(--danger-deep)',
                 fontSize: 13.5,
                 fontWeight: 600,
               }}
@@ -111,7 +111,7 @@ export default function LoginScreen() {
           >
             {busy ? 'Accesso…' : 'Entra'} <Icon name="arrow" size={18} />
           </button>
-          <p style={{ marginTop: 22, fontSize: 14, color: 'var(--ink-2)' }}>
+          <p style={{ marginTop: 22, fontSize: 14, color: 'var(--text-2)' }}>
             Sei un cliente? <Link to="/">Accesso clienti</Link>
           </p>
         </form>

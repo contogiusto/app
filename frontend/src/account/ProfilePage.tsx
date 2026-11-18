@@ -17,16 +17,16 @@ export default function ProfilePage() {
   if (!session) return null
   return (
     <div>
-      <h1 className="serif" style={{ fontSize: 40, lineHeight: 1, marginBottom: 20 }}>
+      <h1 className="display" style={{ fontSize: 28, lineHeight: 1.15, marginBottom: 20 }}>
         Profilo
       </h1>
       <DataForm />
 
       <section className="card" style={{ padding: 20, marginTop: 28 }}>
-        <h2 className="serif" style={{ fontSize: 24, marginBottom: 6 }}>
+        <h2 className="display" style={{ fontSize: 20, marginBottom: 6 }}>
           Esci
         </h2>
-        <p style={{ color: 'var(--ink-2)', fontSize: 14.5, marginBottom: 14 }}>
+        <p style={{ color: 'var(--text-2)', fontSize: 14.5, marginBottom: 14 }}>
           Esci da questo dispositivo. Potrai rientrare con email e password.
         </p>
         <button type="button" className="btn btn--ghost" onClick={() => logout()}>
@@ -34,11 +34,11 @@ export default function ProfilePage() {
         </button>
       </section>
 
-      <section className="card" style={{ padding: 20, marginTop: 16, borderColor: 'var(--clay)' }}>
-        <h2 className="serif" style={{ fontSize: 24, marginBottom: 6 }}>
+      <section className="card" style={{ padding: 20, marginTop: 16, borderColor: 'var(--accent)' }}>
+        <h2 className="display" style={{ fontSize: 20, marginBottom: 6 }}>
           Elimina account
         </h2>
-        <p style={{ color: 'var(--ink-2)', fontSize: 14.5, marginBottom: 14, lineHeight: 1.5 }}>
+        <p style={{ color: 'var(--text-2)', fontSize: 14.5, marginBottom: 14, lineHeight: 1.5 }}>
           Cancella i tuoi dati personali e il tuo accesso. Non si può annullare.{' '}
           <Link to="/privacy" target="_blank" rel="noopener">
             Informativa sulla privacy
@@ -47,7 +47,7 @@ export default function ProfilePage() {
         <button
           type="button"
           className="btn"
-          style={{ background: 'var(--clay-deep)' }}
+          style={{ background: 'var(--accent-deep)' }}
           onClick={() => setDeleting(true)}
         >
           Elimina il mio account…
@@ -153,9 +153,9 @@ function DataForm() {
             readOnly
             aria-describedby="p-email-hint"
             value={customer.email}
-            style={{ background: 'rgba(34,28,21,.04)', color: 'var(--ink-2)' }}
+            style={{ background: 'var(--wash-1)', color: 'var(--text-2)' }}
           />
-          <div id="p-email-hint" style={{ fontSize: 12.5, color: 'var(--ink-2)', marginTop: 5 }}>
+          <div id="p-email-hint" style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 5 }}>
             L’email è il tuo accesso e non si può modificare.
           </div>
         </div>
@@ -209,7 +209,7 @@ function DeleteDialog({ onClose }: { onClose: () => void }) {
           <strong>Viene cancellato:</strong> il tuo nome, cognome, città, email e l’accesso con la
           password. Non potrai più entrare.
         </p>
-        <p style={{ fontSize: 14.5, lineHeight: 1.5, marginBottom: 16, color: 'var(--ink-2)' }}>
+        <p style={{ fontSize: 14.5, lineHeight: 1.5, marginBottom: 16, color: 'var(--text-2)' }}>
           <strong>Resta:</strong> i pagamenti già fatti, ma non più collegati a te e con il nome
           sostituito da «Cliente eliminato»: servono al ristorante per i suoi conti. Il tuo storico
           non sarà più consultabile.
@@ -233,7 +233,7 @@ function DeleteDialog({ onClose }: { onClose: () => void }) {
           <button
             type="submit"
             className="btn"
-            style={{ background: remove.isPending ? undefined : 'var(--clay-deep)' }}
+            style={{ background: remove.isPending ? undefined : 'var(--accent-deep)' }}
             disabled={remove.isPending}
           >
             {remove.isPending ? 'Eliminazione…' : 'Elimina definitivamente'}

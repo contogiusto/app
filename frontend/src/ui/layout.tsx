@@ -5,7 +5,7 @@ import { Icon, type IconName } from './Icon'
 export function Screen({ children }: { children: ReactNode }) {
   return (
     <div
-      className="paper-grain"
+      className="app-bg"
       style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
     >
       {children}
@@ -25,8 +25,8 @@ export function Head({ title, sub, right, onBack }: HeadProps) {
     <header
       style={{
         padding: '8px 22px 14px',
-        borderBottom: '1px solid var(--line)',
-        background: 'var(--paper-2)',
+        borderBottom: '1px solid var(--border)',
+        background: 'var(--surface)',
       }}
     >
       {onBack && (
@@ -36,7 +36,7 @@ export function Head({ title, sub, right, onBack }: HeadProps) {
           style={{
             border: 'none',
             background: 'transparent',
-            color: 'var(--ink-2)',
+            color: 'var(--text-2)',
             display: 'flex',
             alignItems: 'center',
             gap: 4,
@@ -51,10 +51,10 @@ export function Head({ title, sub, right, onBack }: HeadProps) {
       )}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div>
-          <h1 className="serif" style={{ fontSize: 32, lineHeight: 1 }}>
+          <h1 className="display" style={{ fontSize: 26, lineHeight: 1.15 }}>
             {title}
           </h1>
-          {sub && <div style={{ fontSize: 13, color: 'var(--ink-3)', marginTop: 5 }}>{sub}</div>}
+          {sub && <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 5 }}>{sub}</div>}
         </div>
         {right}
       </div>
@@ -75,8 +75,8 @@ export function Footer({ children }: { children: ReactNode }) {
     <footer
       style={{
         padding: '14px 18px calc(14px + env(safe-area-inset-bottom))',
-        borderTop: '1px solid var(--line)',
-        background: 'var(--paper-2)',
+        borderTop: '1px solid var(--border)',
+        background: 'var(--surface)',
       }}
     >
       {children}
@@ -113,20 +113,20 @@ export function CenterMessage({ icon, title, body, role }: CenterMessageProps) {
             width: 60,
             height: 60,
             borderRadius: 18,
-            background: 'var(--paper-3)',
-            border: '1px solid var(--line)',
+            background: 'var(--surface-2)',
+            border: '1px solid var(--border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--ink-3)',
+            color: 'var(--text-3)',
           }}
         >
           <Icon name={icon} size={28} />
         </div>
-        <h2 className="serif" style={{ fontSize: 26 }}>
+        <h2 className="display" style={{ fontSize: 20 }}>
           {title}
         </h2>
-        {body && <p style={{ color: 'var(--ink-2)', fontSize: 14.5, lineHeight: 1.5 }}>{body}</p>}
+        {body && <p style={{ color: 'var(--text-2)', fontSize: 14.5, lineHeight: 1.5 }}>{body}</p>}
       </main>
     </Screen>
   )

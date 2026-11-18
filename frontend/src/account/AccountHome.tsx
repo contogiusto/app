@@ -15,29 +15,29 @@ export default function AccountHome() {
   return (
     <div className="stagger">
       <span className="eyebrow">Il tuo account</span>
-      <h1 className="serif" style={{ fontSize: 40, lineHeight: 1, margin: '8px 0 20px' }}>
+      <h1 className="display" style={{ fontSize: 28, lineHeight: 1.15, margin: '8px 0 20px' }}>
         Ciao, {session?.customer.first_name}.
       </h1>
 
       <Link
         to="/customer/scan"
         className="btn btn--block btn--lg"
-        style={{ color: '#fff', textDecoration: 'none', padding: '22px 24px', fontSize: 18 }}
+        style={{ color: 'var(--on-accent)', textDecoration: 'none', padding: '22px 24px', fontSize: 18 }}
       >
         <Icon name="qr" size={24} /> Scansiona il QR del tavolo
       </Link>
-      <p style={{ fontSize: 13.5, color: 'var(--ink-2)', margin: '10px 4px 0' }}>
+      <p style={{ fontSize: 13.5, color: 'var(--text-2)', margin: '10px 4px 0' }}>
         Con l’account i pagamenti che fai al tavolo finiscono nel tuo storico.
       </p>
 
       <section aria-labelledby="recent" style={{ marginTop: 32 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-          <h2 id="recent" className="serif" style={{ fontSize: 26 }}>
+          <h2 id="recent" className="display" style={{ fontSize: 20 }}>
             Ultimi pagamenti
           </h2>
           {recent.length > 0 && <Link to="/customer/history">Vedi tutto</Link>}
         </div>
-        {payments.isPending && <p role="status" style={{ color: 'var(--ink-2)' }}>Caricamento…</p>}
+        {payments.isPending && <p role="status" style={{ color: 'var(--text-2)' }}>Caricamento…</p>}
         {payments.isError && (
           <>
             <ErrorNote>{payments.error.message}</ErrorNote>
@@ -47,7 +47,7 @@ export default function AccountHome() {
           </>
         )}
         {payments.isSuccess && recent.length === 0 && (
-          <p style={{ color: 'var(--ink-2)', lineHeight: 1.5 }}>
+          <p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>
             Non hai ancora pagamenti. Inquadra il QR del tavolo per iniziare: lo storico comparirà qui.
           </p>
         )}

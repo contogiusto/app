@@ -21,10 +21,10 @@ export function SectionHeader({
       }}
     >
       <div>
-        <h2 className="serif" style={{ fontSize: 38, lineHeight: 1 }}>
+        <h2 className="display" style={{ fontSize: 28, lineHeight: 1.15 }}>
           {title}
         </h2>
-        {sub && <p style={{ color: 'var(--ink-3)', fontSize: 13.5, marginTop: 7 }}>{sub}</p>}
+        {sub && <p style={{ color: 'var(--text-3)', fontSize: 13.5, marginTop: 7 }}>{sub}</p>}
       </div>
       {action}
     </div>
@@ -57,7 +57,7 @@ export function Toggle({
         borderRadius: 99,
         border: 'none',
         padding: 3,
-        background: on ? 'var(--olive)' : 'var(--line-2)',
+        background: on ? 'var(--ok)' : 'var(--border-strong)',
         transition: 'background .2s',
         flexShrink: 0,
         opacity: disabled ? 0.6 : 1,
@@ -69,7 +69,7 @@ export function Toggle({
           width: 19,
           height: 19,
           borderRadius: '50%',
-          background: '#fff',
+          background: 'var(--on-accent)',
           boxShadow: 'var(--shadow-sm)',
           transform: on ? 'translateX(17px)' : 'none',
           transition: 'transform .2s var(--ease)',
@@ -85,8 +85,8 @@ export function ErrorNote({ children }: { children: ReactNode }) {
     <p
       role="alert"
       style={{
-        color: 'var(--clay-deep)',
-        background: 'var(--clay-tint)',
+        color: 'var(--danger-deep)',
+        background: 'var(--danger-tint)',
         borderRadius: 10,
         padding: '10px 14px',
         fontSize: 14,

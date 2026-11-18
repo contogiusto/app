@@ -20,8 +20,8 @@ function ErrorNote({ message }: { message: string | null }) {
         margin: '14px 0 0',
         padding: '10px 14px',
         borderRadius: 'var(--r-md)',
-        background: 'var(--clay-tint)',
-        color: 'var(--clay-deep)',
+        background: 'var(--danger-tint)',
+        color: 'var(--danger-deep)',
         fontSize: 13.5,
         fontWeight: 600,
       }}
@@ -56,10 +56,10 @@ export function EntryChoice({
               {restaurantName} · Tavolo {tableNumber}
             </span>
           </div>
-          <h1 className="serif" style={{ fontSize: 42, lineHeight: 1, marginBottom: 14 }}>
+          <h1 className="display" style={{ fontSize: 30, lineHeight: 1.15, marginBottom: 14 }}>
             Come vuoi entrare?
           </h1>
-          <p style={{ color: 'var(--ink-2)', fontSize: 15.5, lineHeight: 1.5, marginBottom: 28 }}>
+          <p style={{ color: 'var(--text-2)', fontSize: 15.5, lineHeight: 1.5, marginBottom: 28 }}>
             Puoi pagare anche da ospite, senza account. Se accedi o ti registri ritrovi i tuoi
             pagamenti nello storico.
           </p>
@@ -95,11 +95,11 @@ export function AccountNote({ name, onLogout }: { name: string; onLogout: () => 
         gap: '4px 10px',
         margin: '0 0 12px',
         fontSize: 13,
-        color: 'var(--ink-3)',
+        color: 'var(--text-3)',
       }}
     >
       <span>
-        Stai pagando come <b style={{ color: 'var(--ink-2)' }}>{name}</b>.
+        Stai pagando come <b style={{ color: 'var(--text-2)' }}>{name}</b>.
       </span>
       <button
         type="button"
@@ -123,7 +123,7 @@ export function AccountNote({ name, onLogout }: { name: string; onLogout: () => 
 
 /** Dopo il pagamento: chi è collegato sa dove ritrovarlo, l'ospite riceve un invito discreto. */
 export function PostPaymentNote({ signedIn, tone = 'olive' }: { signedIn: boolean; tone?: 'olive' | 'plain' }) {
-  const color = tone === 'olive' ? 'var(--olive-deep)' : 'var(--ink-2)'
+  const color = tone === 'olive' ? 'var(--ok-deep)' : 'var(--text-2)'
   const link = { color: 'inherit', fontWeight: 700 } as const
   return (
     <p style={{ fontSize: 13, color, marginTop: 10, lineHeight: 1.45 }}>
@@ -167,12 +167,12 @@ export function Welcome({
             <Icon name="pin" size={16} style={{ color: 'var(--accent)' }} />
             <span className="eyebrow">{restaurantName}</span>
           </div>
-          <h1 className="serif" style={{ fontSize: 46, lineHeight: 0.98, marginBottom: 14 }}>
+          <h1 className="display" style={{ fontSize: 32, lineHeight: 1.15, marginBottom: 14 }}>
             Benvenuto
             <br />
             al Tavolo {tableNumber}.
           </h1>
-          <p style={{ color: 'var(--ink-2)', fontSize: 16, lineHeight: 1.45, marginBottom: 30 }}>
+          <p style={{ color: 'var(--text-2)', fontSize: 16, lineHeight: 1.45, marginBottom: 30 }}>
             Hai scansionato il QR del tavolo. Inserisci il tuo nome per vedere gli ordini e pagare
             la tua parte.
           </p>
@@ -245,8 +245,8 @@ function ModeCard({ title, sub, icon, lines, disabled, onClick }: ModeCardProps)
         flexDirection: 'column',
         gap: 12,
         cursor: 'pointer',
-        border: '1.5px solid var(--line)',
-        background: 'var(--paper-3)',
+        border: '1.5px solid var(--border)',
+        background: 'var(--surface-2)',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -266,13 +266,13 @@ function ModeCard({ title, sub, icon, lines, disabled, onClick }: ModeCardProps)
         </div>
         <div>
           <h3 style={{ fontSize: 18 }}>{title}</h3>
-          <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{sub}</p>
+          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>{sub}</p>
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {lines.map((line) => (
-          <div key={line} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: 'var(--ink-2)' }}>
-            <Icon name="check" size={14} style={{ color: 'var(--olive)' }} /> {line}
+          <div key={line} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: 'var(--text-2)' }}>
+            <Icon name="check" size={14} style={{ color: 'var(--ok)' }} /> {line}
           </div>
         ))}
       </div>
@@ -317,7 +317,7 @@ export function ChooseMode({
           />
         </div>
         <ErrorNote message={error} />
-        <p style={{ fontSize: 12.5, color: 'var(--ink-3)', textAlign: 'center', marginTop: 20, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 12.5, color: 'var(--text-3)', textAlign: 'center', marginTop: 20, lineHeight: 1.5 }}>
           La modalità vale per tutto il tavolo. Il <b>metodo</b> (online o alla cassa) lo sceglie
           ognuno.
         </p>
@@ -380,14 +380,14 @@ export function Hub({
         <section className="card pop" style={{ padding: 18, marginBottom: 14 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
             <span className="eyebrow">Pagamento del tavolo</span>
-            <span className="chip chip--olive" style={{ fontSize: 11 }}>
+            <span className="chip chip--ok" style={{ fontSize: 11 }}>
               {Math.round(progress * 100)}%
             </span>
           </div>
           <Progress value={progress} label="Avanzamento del pagamento del tavolo" />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, fontSize: 13 }}>
-            <span style={{ color: 'var(--ink-2)' }}>{paidLabel}</span>
-            <span style={{ color: 'var(--ink-3)' }}>{mode === 'ROMANA' ? 'Alla romana' : 'Proprio conto'}</span>
+            <span style={{ color: 'var(--text-2)' }}>{paidLabel}</span>
+            <span style={{ color: 'var(--text-3)' }}>{mode === 'ROMANA' ? 'Alla romana' : 'Proprio conto'}</span>
           </div>
           {session.payments.length > 0 && (
             <ul style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap', listStyle: 'none', padding: 0, marginBottom: 0 }}>
@@ -399,8 +399,8 @@ export function Hub({
                     alignItems: 'center',
                     gap: 7,
                     padding: '5px 11px 5px 5px',
-                    background: 'var(--paper-3)',
-                    border: '1px solid var(--line)',
+                    background: 'var(--surface-2)',
+                    border: '1px solid var(--border)',
                     borderRadius: 99,
                   }}
                 >
@@ -409,7 +409,7 @@ export function Hub({
                   <Icon
                     name={payment.status === 'COMPLETED' ? 'check' : 'clock'}
                     size={13}
-                    style={{ color: payment.status === 'COMPLETED' ? 'var(--olive)' : 'var(--amber)' }}
+                    style={{ color: payment.status === 'COMPLETED' ? 'var(--ok)' : 'var(--warn)' }}
                   />
                 </li>
               ))}
@@ -420,7 +420,7 @@ export function Hub({
         {mine ? (
           <section
             className="card pop"
-            style={{ padding: 20, marginBottom: 16, background: 'var(--olive-tint)', border: '1.5px solid #C7D0B4' }}
+            style={{ padding: 20, marginBottom: 16, background: 'var(--ok-tint)', border: '1.5px solid var(--ok-border)' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
               <div
@@ -428,8 +428,8 @@ export function Hub({
                   width: 30,
                   height: 30,
                   borderRadius: '50%',
-                  background: 'var(--olive)',
-                  color: '#fff',
+                  background: 'var(--ok)',
+                  color: 'var(--on-accent)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -437,11 +437,11 @@ export function Hub({
               >
                 <Icon name="check" size={18} stroke={2.4} />
               </div>
-              <h3 style={{ fontSize: 17, color: 'var(--olive-deep)' }}>
+              <h3 style={{ fontSize: 17, color: 'var(--ok-deep)' }}>
                 {mine.method === 'ONLINE' ? 'Quota saldata online' : 'Pagherai alla cassa'}
               </h3>
             </div>
-            <p style={{ fontSize: 13.5, color: 'var(--olive-deep)' }}>
+            <p style={{ fontSize: 13.5, color: 'var(--ok-deep)' }}>
               {mine.method === 'ONLINE' ? (
                 <>
                   Hai pagato <Money cents={parseMoney(mine.amount)} />. Grazie!
@@ -461,12 +461,12 @@ export function Hub({
             style={{
               padding: 22,
               marginBottom: 16,
-              background: 'linear-gradient(150deg, var(--paper-3), var(--accent-tint))',
-              border: '1.5px solid var(--line-2)',
+              background: 'var(--accent-tint)',
+              border: '1.5px solid var(--border-strong)',
             }}
           >
             <span className="eyebrow">La tua quota</span>
-            <div className="serif tnum" style={{ fontSize: 50, lineHeight: 1, margin: '6px 0 4px', color: 'var(--accent-deep)' }}>
+            <div className="display tnum" style={{ fontSize: 44, lineHeight: 1.15, margin: '6px 0 4px', color: 'var(--accent-deep)' }}>
               {mode === 'ROMANA' && share !== null ? <Money cents={share} /> : null}
               {mode === 'OWN' && <span style={{ fontSize: 18 }}>da definire</span>}
               {mode === 'ROMANA' && share === null && <span style={{ fontSize: 18 }}>—</span>}
@@ -485,7 +485,7 @@ export function Hub({
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '4px 2px 10px' }}>
           <h2 className="eyebrow">Ordini al tavolo</h2>
-          <span style={{ fontSize: 12.5, color: 'var(--ink-3)' }} className="tnum">
+          <span style={{ fontSize: 12.5, color: 'var(--text-3)' }} className="tnum">
             {dishes} piatti · <Money cents={total} />
           </span>
         </div>
@@ -494,14 +494,14 @@ export function Hub({
             <li
               key={item.id}
               className="pop"
-              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderTop: index ? '1px solid var(--line)' : 'none' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderTop: index ? '1px solid var(--border)' : 'none' }}
             >
               <span className="tnum" style={{ fontWeight: 700, fontSize: 14, color: 'var(--accent)', minWidth: 22 }}>
                 {item.quantity}×
               </span>
               <CategoryDot category={item.category} />
               <span style={{ flex: 1, fontSize: 14.5 }}>{item.name}</span>
-              <Money cents={parseMoney(item.line_total)} style={{ fontSize: 13.5, color: 'var(--ink-2)' }} />
+              <Money cents={parseMoney(item.line_total)} style={{ fontSize: 13.5, color: 'var(--text-2)' }} />
             </li>
           ))}
         </ul>
@@ -529,7 +529,7 @@ function QuotaAction({
   onChooseOwn: () => void
 }): ReactNode {
   const note = (text: ReactNode) => (
-    <p style={{ fontSize: 13, color: 'var(--ink-2)', marginBottom: 18 }}>{text}</p>
+    <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 18 }}>{text}</p>
   )
   const button = (label: string, onClick: () => void) => (
     <button type="button" className="btn btn--block btn--lg" onClick={onClick}>
@@ -593,11 +593,11 @@ export function OwnSelect({
           {free.map((item, index) => (
             <li
               key={item.id}
-              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderTop: index ? '1px solid var(--line)' : 'none' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderTop: index ? '1px solid var(--border)' : 'none' }}
             >
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14.5, fontWeight: 600 }}>{item.name}</div>
-                <div style={{ fontSize: 12.5, color: 'var(--ink-3)' }} className="tnum">
+                <div style={{ fontSize: 12.5, color: 'var(--text-3)' }} className="tnum">
                   <Money cents={parseMoney(item.unit_price)} /> · {remaining(item)} disp.
                 </div>
               </div>
@@ -614,7 +614,7 @@ export function OwnSelect({
       </Body>
       <Footer>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 15 }}>
-          <span style={{ color: 'var(--ink-2)' }}>Il tuo totale</span>
+          <span style={{ color: 'var(--text-2)' }}>Il tuo totale</span>
           <Money cents={totalCents} style={{ fontWeight: 700, fontSize: 18 }} />
         </div>
         <button type="button" className="btn btn--block btn--lg" disabled={totalCents <= 0} onClick={onContinue}>
@@ -649,15 +649,15 @@ function MethodCard({
       className="card"
       disabled={disabled}
       onClick={onClick}
-      style={{ textAlign: 'left', padding: 18, display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', background: 'var(--paper-3)' }}
+      style={{ textAlign: 'left', padding: 18, display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', background: 'var(--surface-2)' }}
     >
       <div
         style={{
           width: 48,
           height: 48,
           borderRadius: 14,
-          background: online ? 'var(--accent-tint)' : 'var(--amber-tint)',
-          color: online ? 'var(--accent-deep)' : '#7a5908',
+          background: online ? 'var(--accent-tint)' : 'var(--warn-tint)',
+          color: online ? 'var(--accent-deep)' : 'var(--warn-deep)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -667,9 +667,9 @@ function MethodCard({
       </div>
       <div style={{ flex: 1 }}>
         <h3 style={{ fontSize: 16.5 }}>{title}</h3>
-        <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{sub}</p>
+        <p style={{ fontSize: 13, color: 'var(--text-3)' }}>{sub}</p>
       </div>
-      <Icon name="arrow" size={18} style={{ color: 'var(--ink-3)' }} />
+      <Icon name="arrow" size={18} style={{ color: 'var(--text-3)' }} />
     </button>
   )
 }
@@ -696,7 +696,7 @@ export function Method({
           <MethodCard method="CASH" title="Pago alla cassa" sub="Lo confermerà il cameriere" icon="cash" disabled={pending} onClick={() => onPay('CASH')} />
         </div>
         <ErrorNote message={error} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 22, color: 'var(--ink-3)', fontSize: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 22, color: 'var(--text-3)', fontSize: 12 }}>
           <Icon name="lock" size={13} /> Pagamento simulato · nessun addebito reale
         </div>
       </Body>
@@ -724,10 +724,10 @@ export function Processing() {
           }}
         />
         <div style={{ textAlign: 'center' }}>
-          <h2 className="serif" style={{ fontSize: 24 }}>
+          <h2 className="display" style={{ fontSize: 20 }}>
             Elaborazione…
           </h2>
-          <p style={{ color: 'var(--ink-3)', fontSize: 14, marginTop: 4 }}>Stiamo confermando il pagamento</p>
+          <p style={{ color: 'var(--text-3)', fontSize: 14, marginTop: 4 }}>Stiamo confermando il pagamento</p>
         </div>
       </main>
     </Screen>
@@ -753,8 +753,8 @@ export function Settled({
             width: 76,
             height: 76,
             borderRadius: '50%',
-            background: 'var(--olive)',
-            color: '#fff',
+            background: 'var(--ok)',
+            color: 'var(--on-accent)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -763,13 +763,13 @@ export function Settled({
         >
           <Icon name="check" size={42} stroke={2.6} />
         </div>
-        <h1 className="serif" style={{ fontSize: 38, lineHeight: 1 }}>
+        <h1 className="display" style={{ fontSize: 28, lineHeight: 1.15 }}>
           Tavolo saldato
         </h1>
-        <p style={{ color: 'var(--ink-2)', fontSize: 15.5, lineHeight: 1.5 }}>
+        <p style={{ color: 'var(--text-2)', fontSize: 15.5, lineHeight: 1.5 }}>
           Il conto è chiuso. Grazie per aver cenato da {restaurantName}!
         </p>
-        <div className="chip chip--olive" style={{ marginTop: 4 }}>
+        <div className="chip chip--ok" style={{ marginTop: 4 }}>
           La tua quota: <Money cents={parseMoney(mine.amount)} /> · {mine.method === 'ONLINE' ? 'Online' : 'Cassa'}
         </div>
         <PostPaymentNote signedIn={signedIn} tone="plain" />

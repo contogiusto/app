@@ -36,7 +36,7 @@ export function TablesScreen() {
         }
       />
       {list.length === 0 && (
-        <p style={{ color: 'var(--ink-2)' }}>Non ci sono tavoli: aggiungi il primo.</p>
+        <p style={{ color: 'var(--text-2)' }}>Non ci sono tavoli: aggiungi il primo.</p>
       )}
       <ul
         style={{
@@ -94,7 +94,7 @@ function TableCard({ table }: { table: StaffTable }) {
           Tavolo {table.number}
         </h3>
         <span
-          className={`chip ${busy ? 'chip--amber' : 'chip--olive'}`}
+          className={`chip ${busy ? 'chip--warn' : 'chip--ok'}`}
           style={{ fontSize: 10.5, padding: '3px 9px' }}
         >
           {busy ? 'Occupato' : 'Libero'}
@@ -105,15 +105,15 @@ function TableCard({ table }: { table: StaffTable }) {
           width: 140,
           height: 140,
           padding: 10,
-          background: 'var(--paper-3)',
+          background: 'var(--surface-2)',
           borderRadius: 12,
-          border: '1px solid var(--line)',
+          border: '1px solid var(--border)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           textAlign: 'center',
           fontSize: 12.5,
-          color: 'var(--ink-3)',
+          color: 'var(--text-3)',
         }}
       >
         {qr.url ? (
@@ -166,7 +166,7 @@ function TableCard({ table }: { table: StaffTable }) {
 function PrintSheet({ number, qrUrl }: { number: number; qrUrl: string }) {
   return (
     <div className="print-sheet">
-      <h1 className="serif">Tavolo {number}</h1>
+      <h1 className="display">Tavolo {number}</h1>
       <img src={qrUrl} alt="" />
       <p>Inquadra il QR con la fotocamera per vedere il conto e pagare.</p>
     </div>
@@ -188,7 +188,7 @@ function RegenerateQr({
   })
   return (
     <Modal title={`Rigenerare il QR del tavolo ${table.number}?`} role="alertdialog" onClose={onClose}>
-      <p style={{ color: 'var(--ink-2)', lineHeight: 1.5 }}>
+      <p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>
         Il QR attuale smetterà di funzionare subito: chi lo inquadra non potrà più aprire il tavolo.
         Dovrai stampare il nuovo QR e sostituire quello esposto.
       </p>
