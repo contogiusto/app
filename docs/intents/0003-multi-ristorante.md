@@ -1,6 +1,6 @@
 # 0003 — Più ristoranti, admin centrale e gestione utenti
 
-- **Stato:** in corso (3a fatta)
+- **Stato:** completato (2026-11-18)
 - **Data:** 2026-11-18
 - **Design:** [docs/design/0003-multi-ristorante.md](../design/0003-multi-ristorante.md)
 - **PR:** (a fasi, vedi il piano nel design)

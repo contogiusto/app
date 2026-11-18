@@ -28,7 +28,7 @@ def _out(db: DbSession, r: Restaurant) -> RestaurantOut:
     return RestaurantOut(
         id=r.id,
         name=r.name,
-        slug=r.slug or "",
+        slug=r.slug,
         active=r.active,
         created_at=r.created_at,
         users=utenti,

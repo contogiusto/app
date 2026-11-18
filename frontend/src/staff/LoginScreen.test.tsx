@@ -52,6 +52,24 @@ describe('LoginScreen', () => {
     expect(api.login).toHaveBeenCalledWith('anna', 'pw')
   })
 
+  it('dal login generico si può indicare il ristorante (vuoto = admin centrale)', async () => {
+    const login = loginAs('WAITER')
+    const user = userEvent.setup()
+    renderAt('/staff/login')
+    await user.type(screen.getByLabelText(/Ristorante/), ' Da-Gino ')
+    await fill(user)
+    await waitFor(() => expect(login).toHaveBeenCalledWith('anna', 'pw', 'da-gino'))
+  })
+
+  it('dal link del ristorante il campo non c’è e lo slug viene dall’indirizzo', async () => {
+    const login = loginAs('WAITER')
+    const user = userEvent.setup()
+    renderAt('/ristorante/da-gino/accesso')
+    expect(screen.queryByLabelText(/Ristorante/)).toBeNull()
+    await fill(user)
+    await waitFor(() => expect(login).toHaveBeenCalledWith('anna', 'pw', 'da-gino'))
+  })
+
   it('ADMIN dopo il login va in /admin', async () => {
     const user = userEvent.setup()
     loginAs('ADMIN')
